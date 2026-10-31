@@ -50,4 +50,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Build-UpdaterApp
 
 发布签名私钥和 Android 应用签名材料默认保存在当前用户的 `%LOCALAPPDATA%\ArtemisOS-Dev\signing\`，敏感内容使用当前 Windows 用户的 DPAPI 保护。它们不能提交到仓库；单纯复制 DPAPI 文件到其他电脑并不能保证解密。更换开发机前须通过安全方式迁移或备份密钥，否则无法为已安装客户端继续签发可信更新。`stage\update\trusted-key.xml` 是可公开的验证公钥。
 
-`tests\updater-security.ps1` 为签名、版本、路径和中断恢复提供本机回归检查。实际运行中的模拟器数据存放在安装目录的 `data\`，不要复制进源码仓库。
+`tests\updater-security.ps1` 为签名、版本、路径和中断恢复提供本机回归检查。`tests\bridge-disconnect.ps1` 使用隔离的临时安装和测试服务器检查下载时断开连接的行为，需要 Node.js 和本机签名密钥。实际运行中的模拟器数据存放在安装目录的 `data\`，不要复制进源码仓库。
