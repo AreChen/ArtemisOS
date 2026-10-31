@@ -1,0 +1,23 @@
+# Large Google SDK binaries and generated release artifacts stay outside Git.
+/stage/sdk/
+/stage/data/
+/dist/
+/downloads/
+/build/
+/artifacts/
+/backups/
+/tests/*.log
+
+# Local signing material, credentials, and transient machine state.
+/.secrets/
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+*.key
+*.private.xml
+.env
+.env.*
+!.env.example
+Thumbs.db
