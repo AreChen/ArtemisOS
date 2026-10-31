@@ -164,11 +164,27 @@ vm.heapSize=256
     $stdout = Join-Path $logRoot ($stamp + '-stdout.log')
     $stderr = Join-Path $logRoot ($stamp + '-stderr.log')
     $process = Start-Process -FilePath $emulator -ArgumentList $arguments -WorkingDirectory (Split-Path -Parent $emulator) -RedirectStandardOutput $stdout -RedirectStandardError $stderr -WindowStyle Hidden -PassThru
+    function Set-EmulatorNormalPriority([int]$EmulatorId) {
+        try {
+            $children = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $EmulatorId AND Name = 'qemu-system-x86_64.exe'" -ErrorAction Stop)
+            foreach ($processId in (@($EmulatorId) + @($children | ForEach-Object { $_.ProcessId }))) {
+                $emulatorProcess = Get-Process -Id $processId -ErrorAction SilentlyContinue
+                if ($null -ne $emulatorProcess -and $emulatorProcess.PriorityClass -in @('Idle','BelowNormal')) {
+                    $emulatorProcess.PriorityClass = [Diagnostics.ProcessPriorityClass]::Normal
+                }
+            }
+        } catch {
+            try { Add-Content -LiteralPath $stderr -Value ("无法调整模拟器进程优先级：" + $_.Exception.Message) -Encoding UTF8 } catch { }
+        }
+    }
+    Set-EmulatorNormalPriority $process.Id
     Start-Sleep -Seconds 3
     $process.Refresh()
     if ($process.HasExited -and $process.ExitCode -ne 0) {
         throw "模拟器启动失败，诊断日志位于：`r`n$stderr`r`n$stdout"
     }
+    # The QEMU child can appear after the parent; normalize it after startup too.
+    Set-EmulatorNormalPriority $process.Id
     $powershell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
     $initialize = Join-Path $installRoot 'initialize.ps1'
     $initializeArgs = @('-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', ('"' + $initialize + '"'), '-Serial', "emulator-$Port", '-EmulatorPid', [string]$process.Id)
