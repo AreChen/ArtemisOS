@@ -53,7 +53,9 @@ public final class UpdateActivity extends Activity {
         HttpURLConnection connection = (HttpURLConnection)
             new URL("http://10.0.2.2:" + port + "/v1/" + action).openConnection();
         connection.setConnectTimeout(5000);
-        connection.setReadTimeout(action.equals("install") ? 180000 : 30000);
+        // Installation may include a large image; the local bridge applies its
+        // own network timeouts and can take longer while verifying file hashes.
+        connection.setReadTimeout(action.equals("install") ? 0 : 30000);
         connection.setRequestMethod(action.equals("status") ? "GET" : "POST");
         connection.setRequestProperty("X-Artemis-Token", token);
         if (!action.equals("status")) connection.setDoOutput(true);

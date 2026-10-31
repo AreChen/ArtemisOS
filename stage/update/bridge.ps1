@@ -63,6 +63,7 @@ try {
         $stream = $client.GetStream()
         $reader = New-Object IO.StreamReader($stream, [Text.Encoding]::ASCII, $false, 4096, $true)
         $staged = $null
+        $applyRequested = $false
         try {
             $first = $reader.ReadLine()
             if (-not $first -or $first.Length -gt 2048 -or $first -notmatch '^(GET|POST) (/v1/(?:status|check|install)) HTTP/1\.[01]$') { throw '请求无效。' }
@@ -99,6 +100,7 @@ try {
                 $body = @{ok=$true;message='更新已验证，即将重启模拟器。'}
             }
             Send-BridgeResponse $stream 200 $body
+            if ($staged) { $applyRequested = $true }
         } catch {
             $message = $_.Exception.Message
             try { Send-BridgeResponse $stream 400 @{ok=$false;message=$message} } catch { }
@@ -108,7 +110,7 @@ try {
             $stream.Dispose()
             $client.Dispose()
         }
-        if ($staged) {
+        if ($applyRequested) {
             $powershell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
             $apply = Join-Path $PSScriptRoot 'apply.ps1'
             $args = @('-NoLogo','-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-WindowStyle','Hidden',
