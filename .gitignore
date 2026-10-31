@@ -7,6 +7,10 @@
 /artifacts/
 /backups/
 /tests/*.log
+/server/repository/
+/stage/update/ArtemisUpdate.apk
+/stage/update/*.idsig
+/android/updater/build/
 
 # Local signing material, credentials, and transient machine state.
 /.secrets/
@@ -14,6 +18,7 @@
 *.jks
 *.p12
 *.pfx
+*.dpapi
 *.pem
 *.key
 *.private.xml

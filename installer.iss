@@ -49,6 +49,7 @@ Source: "stage\configure.vbs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\ArtemisOS15.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\start-auto.vbs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\start-software.vbs"; DestDir: "{app}"; Flags: ignoreversion
+Source: "stage\update\*"; DestDir: "{app}\update"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "stage\使用说明.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\licenses\*.txt"; DestDir: "{app}\licenses"; Flags: ignoreversion
 

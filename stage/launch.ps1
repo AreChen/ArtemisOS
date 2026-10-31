@@ -174,6 +174,13 @@ vm.heapSize=256
     $initializeArgs = @('-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', ('"' + $initialize + '"'), '-Serial', "emulator-$Port", '-EmulatorPid', [string]$process.Id)
     if ($Headless) { $initializeArgs += '-Headless' }
     Start-Process -FilePath $powershell -ArgumentList $initializeArgs -WindowStyle Hidden | Out-Null
+    if (-not $Headless) {
+        $bridge = Join-Path $installRoot 'update\bridge.ps1'
+        if (Test-Path -LiteralPath $bridge -PathType Leaf) {
+            $bridgeArgs = @('-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', ('"' + $bridge + '"'), '-Serial', "emulator-$Port", '-EmulatorPid', [string]$process.Id, '-Graphics', $Graphics)
+            Start-Process -FilePath $powershell -ArgumentList $bridgeArgs -WindowStyle Hidden | Out-Null
+        }
+    }
 } catch {
     Show-Problem $_.Exception.Message
     exit 1

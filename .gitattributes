@@ -1,0 +1,3 @@
+# Release hashes depend on exact installed bytes. Keep source text files in
+# stage/ in LF form even when a Windows clone enables core.autocrlf.
+/stage/** text=auto eol=lf
