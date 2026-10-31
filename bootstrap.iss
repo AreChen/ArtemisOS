@@ -33,6 +33,7 @@ Source: "stage\configure.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\configure.vbs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\start-auto.vbs"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\start-software.vbs"; DestDir: "{app}"; Flags: ignoreversion
+Source: "stage\使用说明.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "stage\update\*"; DestDir: "{app}\update"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "stage\version.ini"; DestDir: "{app}"; Flags: ignoreversion
 
