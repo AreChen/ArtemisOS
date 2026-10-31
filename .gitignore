@@ -6,6 +6,7 @@
 /build/
 /artifacts/
 /backups/
+/releases/
 /tests/*.log
 /server/repository/
 /stage/update/ArtemisUpdate.apk

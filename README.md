@@ -30,11 +30,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Start-LocalServe
 
 发布前保留上一发行版的完整、未修改的安装文件快照，并准备新的目标版本目录。两者的 `version.ini` 分别写旧版与新版版本号；已安装文件必须与旧版快照的内容一致。项目自带的本机发布工具会对变化文件计算 SHA-256，生成签名清单，并将文件写入 `server\repository\`：
 
+本机的 `releases/` 不提交到 Git，用于保存发行基线。当前 `0.3.2` 快照包含 SDK；`0.3.0` 和 `0.3.1` 快照不含 SDK，只适用于默认的启动器和更新组件发布。快照应视为只读文件，删除或改动会影响后续版本的补丁制作。
+
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Publish-Update.ps1 -BaseRoot 'E:\releases\0.3.1' -TargetRoot 'E:\releases\0.3.2' -Notes '修复和体验改进'
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\Publish-Update.ps1 -BaseRoot '.\releases\0.3.2' -TargetRoot '.\build\target-0.3.3' -Notes '修复和体验改进'
 ```
 
-清单按旧版本存放，例如 `manifests/0.3.1.json` 和对应的 `.sig`；文件放在 `objects/`。默认只检查启动器与更新组件；需要同时发布 SDK 或系统镜像时加 `-IncludeSdk`。当前按变化的**整个文件**传输，系统镜像变化仍可能需要下载数 GB，尚不支持二进制差分或原生 Android 分区 OTA。清单不支持删除旧文件；受保护的恢复程序和信任公钥也不能通过此通道更换。
+清单按旧版本存放，例如 `manifests/0.3.2.json` 和对应的 `.sig`；文件放在 `objects/`。默认只检查启动器与更新组件；需要同时发布 SDK 或系统镜像时加 `-IncludeSdk`。当前按变化的**整个文件**传输，系统镜像变化仍可能需要下载数 GB，尚不支持二进制差分或原生 Android 分区 OTA。清单不支持删除旧文件；受保护的恢复程序和信任公钥也不能通过此通道更换。
 
 客户端验证签名、目标路径、旧文件哈希、新文件大小和哈希。安装过程中会备份受影响文件并记录恢复信息；中断后下次启动时先尝试恢复。更新范围不包含安装目录的 `data/` 用户数据目录。本项目的本机服务只是静态测试服务；为其他电脑提供更新还需要部署 HTTPS 服务、配置每台客户端的服务器地址及设计正式发布流程。
 
