@@ -2,6 +2,8 @@
 
 ArtemisOS 15 是基于 Android Emulator 的 Windows 内部测试环境。本仓库保存安装器、启动配置、安卓更新入口和更新服务源码。Android SDK、系统镜像、生成的安装包、模拟器用户数据及签名私钥不提交到 Git。
 
+`assets/ArtemisOS15.png` 是透明背景的原始标志；`docs/history/` 保存早期版本验证和移动爱家兼容性排查记录。
+
 ## 现有功能
 
 - Android 15 x86_64 Google APIs 镜像，不包含 Google Play 商店。
