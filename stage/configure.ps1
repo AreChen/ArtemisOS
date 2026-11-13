@@ -7,6 +7,7 @@
     [AllowEmptyString()][string]$SetGraphicsDevice,
     [ValidateSet('720p', '900p', '1080p', '720x1280', '1080x1920', '1280x720', '1920x1080')][string]$SetResolution,
     [ValidateSet('artemis', 'native')][string]$SetFrontend,
+    [string]$SetMaxFps,
     [switch]$NoGui
 )
 
@@ -26,7 +27,11 @@ if ($NoGui) {
     if ($PSBoundParameters.ContainsKey('SetGraphicsDevice')) { $preferences.GraphicsDevice = $SetGraphicsDevice }
     if ($SetResolution) { $preferences.Resolution = $SetResolution }
     if ($SetFrontend) { $preferences.Frontend = $SetFrontend }
-    Write-ArtemisPreferences $preferences.Profile $preferences.Cleanup $preferences.VideoCompat $preferences.Carrier $preferences.Graphics $preferences.Resolution $preferences.Frontend $preferences.GraphicsDevice
+    if ($PSBoundParameters.ContainsKey('SetMaxFps')) {
+        if (-not (Test-ArtemisMaxFps $SetMaxFps)) { throw '帧率上限必须是 1–240 之间的整数。' }
+        $preferences.MaxFps = [int]$SetMaxFps
+    }
+    Write-ArtemisPreferences $preferences.Profile $preferences.Cleanup $preferences.VideoCompat $preferences.Carrier $preferences.Graphics $preferences.Resolution $preferences.Frontend $preferences.GraphicsDevice ([string]$preferences.MaxFps)
     return
 }
 
@@ -223,6 +228,45 @@ for ($i = 0; $i -lt $frontends.Count; $i++) {
 }
 $form.Controls.Add($frontend)
 
+$frameRateLabel = New-Object Windows.Forms.Label
+$frameRateLabel.Location = New-Object Drawing.Point(23, 485)
+$frameRateLabel.Size = New-Object Drawing.Size(115, 28)
+$frameRateLabel.Text = '显示帧率上限：'
+$form.Controls.Add($frameRateLabel)
+$frameRate = New-Object Windows.Forms.ComboBox
+$frameRate.Location = New-Object Drawing.Point(140, 481)
+$frameRate.Size = New-Object Drawing.Size(210, 28)
+$frameRate.DropDownStyle = [Windows.Forms.ComboBoxStyle]::DropDownList
+foreach ($text in @('20 FPS（省资源）', '30 FPS（均衡）', '60 FPS（流畅，默认）', '自定义')) { [void]$frameRate.Items.Add($text) }
+$form.Controls.Add($frameRate)
+$customFps = New-Object Windows.Forms.NumericUpDown
+$customFps.Location = New-Object Drawing.Point(370, 481)
+$customFps.Size = New-Object Drawing.Size(90, 28)
+$customFps.Minimum = 1
+$customFps.Maximum = 240
+$customFps.DecimalPlaces = 0
+$customFps.Value = $preferences.MaxFps
+$form.Controls.Add($customFps)
+$fpsUnit = New-Object Windows.Forms.Label
+$fpsUnit.Location = New-Object Drawing.Point(470, 485)
+$fpsUnit.Size = New-Object Drawing.Size(120, 28)
+$fpsUnit.Text = 'FPS（1–240）'
+$form.Controls.Add($fpsUnit)
+function Update-ArtemisConfigFrameRate {
+    $enabled = ($frontend.SelectedIndex -eq 0)
+    $frameRate.Enabled = $enabled
+    $frameRateLabel.Enabled = $enabled
+    $fpsUnit.Enabled = $enabled
+    if ($frameRate.SelectedIndex -ge 0 -and $frameRate.SelectedIndex -lt 3) {
+        $customFps.Value = @(20, 30, 60)[$frameRate.SelectedIndex]
+    }
+    $customFps.Enabled = ($enabled -and $frameRate.SelectedIndex -eq 3)
+}
+$frameRate.Add_SelectedIndexChanged({ Update-ArtemisConfigFrameRate })
+$frontend.Add_SelectedIndexChanged({ Update-ArtemisConfigFrameRate })
+$frameRate.SelectedIndex = switch ($preferences.MaxFps) { 20 { 0 } 30 { 1 } 60 { 2 } default { 3 } }
+Update-ArtemisConfigFrameRate
+
 $hostMemory = ''
 try {
     $memoryGB = [Math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB, 1)
@@ -231,9 +275,9 @@ try {
     $hostMemory = "当前电脑：$([Environment]::ProcessorCount) 个逻辑处理器。"
 }
 $note = New-Object Windows.Forms.Label
-$note.Location = New-Object Drawing.Point(23, 488)
-$note.Size = New-Object Drawing.Size(575, 118)
-$note.Text = "$hostMemory`r`n更改后请关闭并重新启动模拟器。取消勾选可恢复已停用的预装应用。`r`nAMD Vulkan 尚未经 AMD 实机验证；不支持时请手动切换其他模式。`r`n自定义窗口支持安全页面显示；遇到兼容问题可切换原生窗口。`r`n精简镜像未内置的应用需另行安装；模拟运营商不提供真实电话或短信服务。"
+$note.Location = New-Object Drawing.Point(23, 527)
+$note.Size = New-Object Drawing.Size(575, 100)
+$note.Text = "$hostMemory`r`n更改后请关闭并重启模拟器；帧率仅适用于自定义窗口，高帧率更耗 CPU。`r`nAMD Vulkan 尚未经实机验证；不支持时请手动切换其他模式。`r`n精简镜像缺少的应用需自行安装；模拟运营商不提供真实电话或短信。`r`n取消勾选可恢复预装应用；实际帧率受应用和系统刷新率限制。"
 $form.Controls.Add($note)
 
 $save = New-Object Windows.Forms.Button
@@ -253,7 +297,8 @@ $save.Add_Click({
         $chosenGraphics = $graphicsModes[$graphics.SelectedIndex].Key
         $chosenDevice = if ($renderDevice.Enabled -and $renderDevice.SelectedItem) { $renderDevice.SelectedItem.Id } else { '' }
         if ($chosenGraphics -in @('vulkan_intel', 'vulkan_amd')) { [void](Get-ArtemisSelectedVulkanDevice -Renderer $chosenGraphics -DeviceId $chosenDevice) }
-        Write-ArtemisPreferences $chosen $cleanValue $videoValue $carriers[$carrier.SelectedIndex].Key $chosenGraphics $resolutions[$resolution.SelectedIndex].Key $frontends[$frontend.SelectedIndex].Key $chosenDevice
+        if ($frameRate.SelectedIndex -lt 0) { throw '请选择显示帧率上限。' }
+        Write-ArtemisPreferences $chosen $cleanValue $videoValue $carriers[$carrier.SelectedIndex].Key $chosenGraphics $resolutions[$resolution.SelectedIndex].Key $frontends[$frontend.SelectedIndex].Key $chosenDevice ([string][int]$customFps.Value)
         [void][Windows.Forms.MessageBox]::Show('配置已保存，关闭并重新启动模拟器后生效。', 'ArtemisOS 15', 'OK', 'Information')
         $form.DialogResult = [Windows.Forms.DialogResult]::OK
         $form.Close()

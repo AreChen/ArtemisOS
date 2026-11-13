@@ -271,7 +271,7 @@ namespace ArtemisOS.Frontend
             CheckRunning();
             Publish("正在连接画面", "独立显示窗口正在就绪…");
             string title = "ArtemisOS Display " + sessionId;
-            var args = new List<string>(ViewerArguments.Build(Serial, title));
+            var args = new List<string>(ViewerArguments.Build(Serial, title, ViewerArguments.ReadMaxFps(Paths.Root)));
             args.Add("--window-x=-30000");
             args.Add("--window-y=-30000");
             args.Add("--window-width=360");

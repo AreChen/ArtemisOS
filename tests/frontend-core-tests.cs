@@ -114,12 +114,61 @@ internal static class FrontendCoreTests
         if (mode == "bad-png") Console.Write("this is not a PNG");
         return 0;
     }
+    private static void FrameRateTests()
+    {
+        Test("Viewer FPS defaults, dynamic limits and invalid explicit rates", delegate {
+            Check(ViewerArguments.DefaultMaxFps == 60 && ViewerArguments.MaximumMaxFps == 240, "FPS constants disagree with the settings contract.");
+            Check(ViewerArguments.Build("emulator-5554", "default").Contains("--max-fps=60"), "Legacy Build did not default to 60 FPS.");
+            foreach (int rate in new[] { 1, 20, 30, 60, 90, 120, 144, 240 }) {
+                string[] actual = ViewerArguments.Build("emulator-5554", "动态帧率", rate);
+                Check(actual.Count(v => v.StartsWith("--max-fps=")) == 1 && actual.Contains("--max-fps=" + rate), "The dynamic rate was lost or duplicated.");
+                Check(actual.Take(2).SequenceEqual(new[] { "-s", "emulator-5554" }) && actual.Contains("--window-title=动态帧率"), "FPS configuration changed instance identity.");
+            }
+            foreach (int rate in new[] { Int32.MinValue, -1, 0, 241, Int32.MaxValue })
+                Reject(delegate { ViewerArguments.Build("emulator-5554", "invalid", rate); }, "Invalid FPS reached viewer arguments.");
+        });
+        Test("Viewer preference FPS parsing is strict, read-only and defaults safely", delegate {
+            string root = Path.Combine(fixture, "帧率 preference");
+            Check(ViewerArguments.ReadMaxFps(root) == 60 && !Directory.Exists(root), "Reading a missing installation changed the filesystem or default.");
+            string data = Path.Combine(root, "data"); Directory.CreateDirectory(data);
+            Check(ViewerArguments.ReadMaxFps(root) == 60, "Missing preferences did not default to 60.");
+            string preferences = Path.Combine(data, "preferences.ini");
+            foreach (int rate in Enumerable.Range(1, 240)) {
+                string text = "profile=high\r\nmax_fps=" + rate + "\r\nfuture_key=keep\r\n";
+                File.WriteAllText(preferences, text, Encoding.UTF8);
+                Check(ViewerArguments.ReadMaxFps(root) == rate, "Valid stored FPS was rejected: " + rate);
+                Check(File.ReadAllText(preferences) == text, "Reading FPS rewrote user preferences.");
+            }
+            foreach (string value in new[] { "", " ", "0", "00", "01", "060", "241", "2147483648", "999999999999999999999999", "-1", "+60", "60.0", "6e1", "0x3c", "NaN", " 60", "60 ", "\t60", "60\t", "６０", "٦٠", "60;whoami", "60&whoami", "$(whoami)" }) {
+                File.WriteAllText(preferences, "max_fps=" + value + "\n", Encoding.UTF8);
+                Check(ViewerArguments.ReadMaxFps(root) == 60, "Noncanonical stored FPS was accepted: " + value);
+            }
+            File.Delete(preferences); Directory.CreateDirectory(preferences);
+            Check(ViewerArguments.ReadMaxFps(root) == 60, "Non-file preferences did not fall back safely.");
+        });
+        Test("Viewer reloads FPS preferences and the last untrimmed case-insensitive key wins", delegate {
+            string root = Path.Combine(fixture, "FPS reload"); string data = Path.Combine(root, "data"); Directory.CreateDirectory(data);
+            string preferences = Path.Combine(data, "preferences.ini");
+            string[] inputs = { "max_fps=30\nmax_fps=120\n", "max_fps=120\nmax_fps=bad\n", "max_fps=bad\nmax_fps=30\n", "MAX_FPS=120\n", " max_fps=120\n", "max_fps =120\n", "unknown=120\n" };
+            int[] expected = { 120, 60, 30, 120, 60, 60, 60 };
+            for (int i = 0; i < inputs.Length; i++) {
+                File.WriteAllText(preferences, inputs[i], Encoding.UTF8);
+                int rate = ViewerArguments.ReadMaxFps(root);
+                Check(rate == expected[i], "Reload/exact key/duplicate key semantics differ from PowerShell.");
+                Check(ViewerArguments.Build("emulator-5554", "reload", rate).Contains("--max-fps=" + expected[i]), "Reloaded FPS did not reach scrcpy arguments.");
+            }
+        });
+    }
     private static int Main(string[] args)
     {
         if (args.Length > 0 && args[0] == "--child") return RunChild(args);
         if (args.Length > 0 && args[0] == "--fake-wm") return FakeAdb(new[] { "-s", "emulator-5554", "shell", "wm" }.Concat(args.Skip(1)).ToArray());
         if (args.Length > 0 && args[0] == "-s") return FakeAdb(args);
         fixture = args[0];
+        if (args.Length == 2 && args[1] == "--frame-rate-only") {
+            FrameRateTests();
+            return failed == 0 ? 0 : 1;
+        }
         Test("Windows native argument roundtrip, including empty, quotes, Unicode and shell characters", delegate {
             string[] values = { "", "plain", "with spaces", "中文文件", "C:\\space dir\\", "a\\\"b", "quoted\"text", "$(echo unsafe); &|<>%PATH%", "a\tline", "a\nline" };
             CommandResult r = ProcessRunner.Run(Self, Child("echo").Concat(values), 10000);
@@ -306,7 +355,7 @@ internal static class FrontendCoreTests
         Test("Viewer is scoped, conservative and has no shared ADB shutdown", delegate {
             string[] v = ViewerArguments.Build("emulator-5554", "ArtemisOS 测试");
             Check(v.Take(2).SequenceEqual(new[] { "-s", "emulator-5554" }) && v.Contains("--window-title=ArtemisOS 测试"), "Viewer identity/title missing.");
-            foreach (string required in new[] { "--window-borderless", "--no-audio", "--video-codec=h264", "--video-encoder=c2.android.avc.encoder", "--max-size=1280", "--max-fps=20", "--video-bit-rate=4M", "--render-driver=direct3d", "--pause-on-exit=false" }) Check(v.Contains(required), "Unsafe viewer default: " + required);
+            foreach (string required in new[] { "--window-borderless", "--no-audio", "--video-codec=h264", "--video-encoder=c2.android.avc.encoder", "--max-size=1280", "--max-fps=60", "--video-bit-rate=4M", "--render-driver=direct3d", "--pause-on-exit=false" }) Check(v.Contains(required), "Unsafe viewer default: " + required);
             Check(!v.Contains("--kill-adb-on-close") && !v.Contains("--no-cleanup"), "Viewer can damage another ADB session or leave its server.");
         });
         Test("Paths support incomplete fixtures and read version.ini", delegate {
@@ -315,6 +364,7 @@ internal static class FrontendCoreTests
             Check(!Directory.Exists(root), "Path construction changed the filesystem.");
             Directory.CreateDirectory(root); File.WriteAllText(Path.Combine(root, "version.ini"), "[ArtemisOS]\r\nVersion=1.2.3\r\n"); Check(p.Version == "1.2.3", "Version was not read from installation.");
         });
+        FrameRateTests();
         Console.WriteLine("Frontend core tests: " + (failed == 0 ? "PASS" : failed + " FAILED"));
         return failed == 0 ? 0 : 1;
     }

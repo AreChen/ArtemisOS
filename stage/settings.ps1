@@ -65,6 +65,10 @@ function Get-ArtemisAdbReservedPorts([int]$ServerPort = 5037) {
     }
 }
 
+function Test-ArtemisMaxFps([string]$Value) {
+    return ($Value -cmatch '\A[1-9][0-9]{0,2}\z' -and [int]$Value -le 240)
+}
+
 function Get-ArtemisPreferences {
     $values = Read-ArtemisKeyValues $script:ArtemisPreferencesPath
     $profile = if ($values['profile'] -in @('low', 'medium', 'high')) { $values['profile'] } else { 'low' }
@@ -75,27 +79,30 @@ function Get-ArtemisPreferences {
     $graphicsDevice = if (Test-ArtemisGraphicsDeviceId $values['graphics_device']) { $values['graphics_device'] } else { '' }
     $resolution = if ($values['resolution'] -in @('720p', '900p', '1080p', '720x1280', '1080x1920', '1280x720', '1920x1080')) { $values['resolution'] } else { '720p' }
     $frontend = if ($values['frontend'] -in @('artemis', 'native')) { $values['frontend'] } else { 'artemis' }
-    return [pscustomobject]@{ Profile = $profile; Cleanup = $cleanup; VideoCompat = $videoCompat; Carrier = $carrier; Graphics = $graphics; Resolution = $resolution; Frontend = $frontend; GraphicsDevice = $graphicsDevice }
+    $maxFps = if (Test-ArtemisMaxFps $values['max_fps']) { [int]$values['max_fps'] } else { 60 }
+    return [pscustomobject]@{ Profile = $profile; Cleanup = $cleanup; VideoCompat = $videoCompat; Carrier = $carrier; Graphics = $graphics; Resolution = $resolution; Frontend = $frontend; GraphicsDevice = $graphicsDevice; MaxFps = $maxFps }
 }
 
-function Write-ArtemisPreferences([string]$Profile, [string]$Cleanup, [string]$VideoCompat, [string]$Carrier = 'mobile', [string]$Graphics = 'host', [string]$Resolution = '720p', [string]$Frontend, [string]$GraphicsDevice) {
+function Write-ArtemisPreferences([string]$Profile, [string]$Cleanup, [string]$VideoCompat, [string]$Carrier = 'mobile', [string]$Graphics = 'host', [string]$Resolution = '720p', [string]$Frontend, [string]$GraphicsDevice, [string]$MaxFps) {
     # Older positional callers change only their existing fields; they must not
     # reset a native-window choice made by a newer configuration UI.
     if (-not $PSBoundParameters.ContainsKey('Frontend')) { $Frontend = (Get-ArtemisPreferences).Frontend }
     if (-not $PSBoundParameters.ContainsKey('GraphicsDevice')) { $GraphicsDevice = (Get-ArtemisPreferences).GraphicsDevice }
+    if (-not $PSBoundParameters.ContainsKey('MaxFps')) { $MaxFps = [string](Get-ArtemisPreferences).MaxFps }
     if ($Profile -notin @('low', 'medium', 'high') -or $Cleanup -notin @('0', '1') -or $VideoCompat -notin @('0', '1') -or
         $Carrier -notin @('mobile', 'telecom', 'unicom') -or
         $Graphics -notin @('auto', 'host', 'vulkan', 'vulkan_intel', 'vulkan_amd', 'software', 'swiftshader', 'swangle', 'lavapipe') -or
         ($GraphicsDevice -and -not (Test-ArtemisGraphicsDeviceId $GraphicsDevice)) -or
         $Resolution -notin @('720p', '900p', '1080p', '720x1280', '1080x1920', '1280x720', '1920x1080') -or
-        $Frontend -notin @('artemis', 'native')) {
+        $Frontend -notin @('artemis', 'native') -or -not (Test-ArtemisMaxFps $MaxFps)) {
         throw '无效的模拟器配置。'
     }
     [void][IO.Directory]::CreateDirectory($script:ArtemisDataRoot)
     $values = Read-ArtemisKeyValues $script:ArtemisPreferencesPath
     $values['profile'] = $Profile; $values['cleanup'] = $Cleanup; $values['video_compat'] = $VideoCompat
     $values['carrier'] = $Carrier; $values['graphics'] = $Graphics; $values['resolution'] = $Resolution; $values['frontend'] = $Frontend; $values['graphics_device'] = $GraphicsDevice
-    $keys = @('profile', 'cleanup', 'video_compat', 'carrier', 'graphics', 'resolution', 'frontend', 'graphics_device')
+    $values['max_fps'] = $MaxFps
+    $keys = @('profile', 'cleanup', 'video_compat', 'carrier', 'graphics', 'resolution', 'frontend', 'graphics_device', 'max_fps')
     $keys += @($values.Keys | Where-Object { $_ -notin $keys } | Sort-Object)
     $lines = @($keys | ForEach-Object { "$_=$($values[$_])" })
     [IO.File]::WriteAllText($script:ArtemisPreferencesPath, (($lines -join "`n") + "`n"), (New-Object Text.UTF8Encoding($false)))

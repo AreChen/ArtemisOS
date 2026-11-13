@@ -1,6 +1,6 @@
 # Read-only production validation. Never uploads, changes server settings,
 # follows a login session, or downloads a complete large runtime object.
-param([string]$Output = 'build\ota-direct-live-result.json', [ValidateSet('1.0.6','1.0.7','1.0.8','1.0.9','1.1.0')][string]$LatestVersion='1.0.6')
+param([string]$Output = 'build\ota-direct-live-result.json', [ValidateSet('1.0.6','1.0.7','1.0.8','1.0.9','1.1.0','1.1.1')][string]$LatestVersion='1.0.6')
 $ErrorActionPreference='Stop'
 $project=Split-Path -Parent $PSScriptRoot
 . (Join-Path $project 'stage\update\core.ps1')
@@ -11,7 +11,7 @@ Copy-Item -LiteralPath (Join-Path $project 'stage\update\trusted-key.xml') -Dest
 [IO.File]::WriteAllText((Join-Path $work 'update\server.txt'),$base.AbsoluteUri)
 $checks=@();$offers=@{}
 function Assert([bool]$Value,[string]$Label){if(-not $Value){throw "FAIL: $Label"};Write-Host "PASS: $Label"}
-$knownVersions=@(2..9|ForEach-Object {'1.0.'+$_})+@('1.1.0')
+$knownVersions=@(2..9|ForEach-Object {'1.0.'+$_})+@('1.1.0','1.1.1')
 $latestIndex=[Array]::IndexOf($knownVersions,$LatestVersion)
 if($latestIndex -lt 0){throw 'Unknown signed release chain.'}
 $versions=@($knownVersions[0..$latestIndex])

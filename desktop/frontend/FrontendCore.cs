@@ -416,11 +416,41 @@ namespace ArtemisOS.Frontend
 
     public static class ViewerArguments
     {
+        public const int DefaultMaxFps = 60;
+        public const int MaximumMaxFps = 240;
+
+        public static int ReadMaxFps(string root)
+        {
+            string path = System.IO.Path.Combine(root, "data", "preferences.ini");
+            string value = null;
+            try {
+                if (!System.IO.File.Exists(path)) return DefaultMaxFps;
+                foreach (string line in System.IO.File.ReadAllLines(path)) {
+                    int split = line.IndexOf('=');
+                    if (split > 0 && String.Equals(line.Substring(0, split), "max_fps", StringComparison.OrdinalIgnoreCase))
+                        value = line.Substring(split + 1);
+                }
+            }
+            catch (System.IO.IOException) { return DefaultMaxFps; }
+            catch (UnauthorizedAccessException) { return DefaultMaxFps; }
+            int parsed;
+            if (value == null || !System.Text.RegularExpressions.Regex.IsMatch(value, @"\A[1-9][0-9]{0,2}\z") ||
+                !Int32.TryParse(value, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out parsed) ||
+                parsed < 1 || parsed > MaximumMaxFps) return DefaultMaxFps;
+            return parsed;
+        }
+
         public static string[] Build(string serial, string title)
+        {
+            return Build(serial, title, DefaultMaxFps);
+        }
+
+        public static string[] Build(string serial, string title, int maxFps)
         {
             CommandLine.ValidateSerial(serial);
             if (String.IsNullOrWhiteSpace(title)) throw new ArgumentException("缺少窗口标题。", "title");
-            return new[] { "-s", serial, "--window-title=" + title, "--window-borderless", "--no-audio", "--video-codec=h264", "--video-encoder=c2.android.avc.encoder", "--max-size=1280", "--max-fps=20", "--video-bit-rate=4M", "--render-driver=direct3d", "--pause-on-exit=false" };
+            if (maxFps < 1 || maxFps > MaximumMaxFps) throw new ArgumentOutOfRangeException("maxFps");
+            return new[] { "-s", serial, "--window-title=" + title, "--window-borderless", "--no-audio", "--video-codec=h264", "--video-encoder=c2.android.avc.encoder", "--max-size=1280", "--max-fps=" + maxFps.ToString(System.Globalization.CultureInfo.InvariantCulture), "--video-bit-rate=4M", "--render-driver=direct3d", "--pause-on-exit=false" };
         }
     }
 
