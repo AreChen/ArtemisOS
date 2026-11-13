@@ -1,12 +1,19 @@
 ﻿param(
     [Parameter(Mandatory = $true)][string]$Serial,
     [int]$EmulatorPid = 0,
-    [int]$WaitSeconds = 300,
-    [switch]$Headless
+    # First boot can take longer on busy or low-end disks, and changing the
+    # locale may restart the framework after boot_completed is first set.
+    [int]$WaitSeconds = 900,
+    [switch]$Headless,
+    [ValidateSet('', 'auto', 'host', 'vulkan', 'vulkan_intel', 'vulkan_amd', 'software', 'swiftshader', 'swangle', 'lavapipe')]
+    [string]$GraphicsRenderer = '',
+    [string]$GraphicsDevice = '',
+    [string]$SessionId = ''
 )
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'settings.ps1')
+if ($SessionId) { . (Join-Path $PSScriptRoot 'update\frontend-handoff.ps1') }
 $adb = Join-Path $PSScriptRoot 'sdk\platform-tools\adb.exe'
 $logDirectory = Join-Path $script:ArtemisDataRoot 'logs'
 [void][IO.Directory]::CreateDirectory($logDirectory)
@@ -31,11 +38,14 @@ function Invoke-Device([string[]]$DeviceArguments) {
 }
 
 function Test-EmulatorRunning {
+    if ($SessionId) {
+        return (Test-ArtemisFrontendBackendIdentity (Get-ArtemisFrontendProcessSnapshot $EmulatorPid) $PSScriptRoot $EmulatorPid ([string]$session.emulatorStartTimeUtcTicks))
+    }
     return ($EmulatorPid -le 0 -or $null -ne (Get-Process -Id $EmulatorPid -ErrorAction SilentlyContinue))
 }
 
 function Set-VersionedWindowTitle {
-    if ($Headless -or $EmulatorPid -le 0) { return $true }
+    if ($Headless -or $SessionId -or $EmulatorPid -le 0) { return $true }
     $port = $Serial -replace '^emulator-', ''
     if ($port -notmatch '^\d+$') { return $true }
     $title = 'ArtemisOS 15 v' + (Get-ArtemisVersion)
@@ -93,7 +103,7 @@ function Wait-AndroidReady {
     $deadline = [DateTime]::UtcNow.AddSeconds($WaitSeconds)
     $consoleHandled = $false
     $consoleErrorLogged = $false
-    $titleHandled = ($Headless -or $EmulatorPid -le 0)
+    $titleHandled = ($Headless -or $SessionId -or $EmulatorPid -le 0)
     $titleErrorLogged = $false
     while ([DateTime]::UtcNow -lt $deadline) {
         if (-not (Test-EmulatorRunning)) { return $false }
@@ -212,6 +222,24 @@ function Ensure-DefaultWifi {
     Write-InitializeLog '未发现已保存的无线网络，已请求连接模拟器内置的 AndroidWifi。'
 }
 
+function Initialize-SimCarrier([string]$Carrier) {
+    $expected = switch ($Carrier) {
+        'mobile' { '46000' }
+        'telecom' { '46003' }
+        'unicom' { '46001' }
+        default { throw '无效的模拟运营商。' }
+    }
+    if ((Invoke-Device @('shell', 'getprop', 'gsm.sim.state')) -ne 'LOADED' -or
+        (Invoke-Device @('shell', 'getprop', 'gsm.sim.operator.numeric')) -ne $expected) {
+        throw '模拟 SIM 尚未就绪。'
+    }
+    # LTE is a radio setting; the emulator's separate network shaper remains unlimited.
+    $result = Invoke-Device @('shell', 'cmd', 'phone', 'set-allowed-network-types-for-users', '-s', '0', '01000001000000000000')
+    if ($result -notmatch 'completed') { throw '无法设置模拟 LTE 网络。' }
+    Set-ArtemisState 'carrier' $Carrier
+    Write-InitializeLog "模拟运营商已设置：$Carrier，LTE。"
+}
+
 function Write-ManagedApps([string[]]$Apps) {
     [IO.File]::WriteAllLines($script:ArtemisManagedAppsPath, [string[]]$Apps, [Text.Encoding]::ASCII)
 }
@@ -266,19 +294,87 @@ function Invoke-InitializationStep([scriptblock]$Step) {
     }
 }
 
+$actualRenderer = ''
 try {
-    if (-not (Wait-AndroidReady)) { Write-InitializeLog '模拟器已关闭，初始化将在下次启动时继续。'; return }
+    if ($SessionId) {
+        $session = Read-ArtemisFrontendSession $PSScriptRoot $SessionId
+        if ($session.serial -cne $Serial -or [int]$session.emulatorPid -ne $EmulatorPid) { throw 'The initializer does not own this frontend session.' }
+        if (-not (Test-EmulatorRunning)) { throw 'The backend executable path or creation time no longer matches this session.' }
+    }
+    if (-not (Wait-AndroidReady)) {
+        Write-InitializeLog '模拟器已关闭，初始化将在下次启动时继续。'
+        if ($SessionId) { throw '模拟器已退出，无法完成初始化。' }
+        return
+    }
+    if ($GraphicsRenderer -in @('vulkan', 'vulkan_intel', 'vulkan_amd')) {
+        try {
+            if ($GraphicsRenderer -in @('vulkan_intel', 'vulkan_amd') -and -not $GraphicsDevice) { throw '指定显卡 Vulkan 缺少已选显卡名称，请从 ArtemisOS 启动器重新启动。' }
+            $surfaceReport = Invoke-Device @('shell', 'dumpsys', 'SurfaceFlinger')
+            $actualRenderer = (@($surfaceReport -split "`r?`n" | Where-Object { $_ -match '^\s*GLES:' }) | Select-Object -First 1)
+            $gles = Assert-ArtemisHardwareVulkanRenderer $surfaceReport $GraphicsDevice
+            $actualRenderer = $gles
+            Write-InitializeLog "硬件 Vulkan 渲染已确认：$gles"
+        } catch {
+            $hardwareError = $_.Exception.Message
+            Write-InitializeLog "硬件 Vulkan 启动失败：$hardwareError"
+            try {
+                $owner = Get-CimInstance Win32_Process -Filter "ProcessId = $EmulatorPid" -ErrorAction Stop
+                $owned = Test-ArtemisEmulatorOwnership $owner $PSScriptRoot $EmulatorPid $Serial
+                if ($SessionId -and $owned) { $owned = Test-EmulatorRunning }
+                if ($owned) {
+                    [void](Invoke-Device @('emu', 'kill'))
+                    Write-InitializeLog '已停止未能启用硬件 Vulkan 的本次模拟器实例。'
+                } else { Write-InitializeLog '无法确认启动进程归属，未停止任何实例。' }
+            } catch { Write-InitializeLog ("停止本次实例失败：" + $_.Exception.Message) }
+            if ($SessionId) {
+                try { Set-ArtemisFrontendSessionState -InstallRoot $PSScriptRoot -SessionId $SessionId -Serial $Serial -EmulatorPid $EmulatorPid -State failed -Error $hardwareError -ActualRenderer $actualRenderer }
+                catch { Write-InitializeLog ('无法记录前端启动失败：' + $_.Exception.Message) }
+            }
+            if ($Headless) { [Console]::Error.WriteLine($hardwareError) }
+            else {
+                Add-Type -AssemblyName System.Windows.Forms
+                [void][Windows.Forms.MessageBox]::Show($hardwareError, 'ArtemisOS 15 - 硬件 Vulkan 启动失败', 'OK', 'Warning')
+            }
+            exit 1
+        }
+    }
     $state = Read-ArtemisKeyValues $script:ArtemisStatePath
     if ($state['locale'] -ne '1') { Invoke-InitializationStep { Initialize-Locale } }
     if ($state['network'] -notin @('1', 'custom')) { Invoke-InitializationStep { Initialize-Network } }
     try { Ensure-DefaultWifi } catch { Write-InitializeLog "恢复默认 Wi-Fi 失败：$($_.Exception.Message)" }
     $preferences = Get-ArtemisPreferences
+    if ($state['carrier'] -ne $preferences.Carrier) {
+        try { Invoke-InitializationStep { Initialize-SimCarrier $preferences.Carrier } } catch {
+            Write-InitializeLog "设置模拟运营商失败，将在下次启动时重试：$($_.Exception.Message)"
+        }
+    }
     if ($state['cleanup'] -ne $preferences.Cleanup) { Invoke-InitializationStep { Initialize-OptionalApps $preferences.Cleanup } }
+    if ($SessionId -and $state['launcher_rotation'] -ne '1') {
+        $launcherLayout = Join-Path $PSScriptRoot 'update\launcher-layout.ps1'
+        if (Test-Path -LiteralPath $launcherLayout -PathType Leaf) {
+            try { . $launcherLayout; Initialize-ArtemisLauncherRotation }
+            catch { Write-InitializeLog ('桌面旋转初始化已跳过，下次启动重试：' + $_.Exception.Message) }
+        }
+    }
+    if ($SessionId) {
+        if (-not $actualRenderer) {
+            $surfaceReport = Invoke-Device @('shell', 'dumpsys', 'SurfaceFlinger')
+            $actualRenderer = (@($surfaceReport -split "`r?`n" | Where-Object { $_ -match '^\s*GLES:' }) | Select-Object -First 1)
+        }
+        Set-ArtemisFrontendSessionState -InstallRoot $PSScriptRoot -SessionId $SessionId -Serial $Serial -EmulatorPid $EmulatorPid -State ready -ActualRenderer $actualRenderer
+    }
     Write-InitializeLog '初始化检查完成。'
 } catch {
-    Write-InitializeLog "初始化未完成：$($_.Exception.Message)"
+    $initializationError = $_.Exception.Message
+    Write-InitializeLog "初始化未完成：$initializationError"
+    if ($SessionId) {
+        try { Set-ArtemisFrontendSessionState -InstallRoot $PSScriptRoot -SessionId $SessionId -Serial $Serial -EmulatorPid $EmulatorPid -State failed -Error $initializationError -ActualRenderer $actualRenderer }
+        catch { Write-InitializeLog ('无法记录前端初始化失败：' + $_.Exception.Message) }
+        [Console]::Error.WriteLine($initializationError)
+        exit 1
+    }
     if (-not $Headless -and (Test-EmulatorRunning)) {
         Add-Type -AssemblyName System.Windows.Forms
-        [void][Windows.Forms.MessageBox]::Show('ArtemisOS 15 首次初始化尚未完成，将在下次启动时重试。详情请查看安装目录 data\logs\initialize.log。', 'ArtemisOS 15', 'OK', 'Warning')
+        [void][Windows.Forms.MessageBox]::Show(("ArtemisOS 15 初始化未完成：`r`n" + $_.Exception.Message + "`r`n详情请查看安装目录 data\logs\initialize.log。"), 'ArtemisOS 15', 'OK', 'Warning')
     }
 }

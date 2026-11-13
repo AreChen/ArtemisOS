@@ -7,9 +7,12 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'core.ps1')
 $dataRoot = Join-Path $root 'data\update'
+Assert-UpdatePathSafe $dataRoot
 [void][IO.Directory]::CreateDirectory($dataRoot)
 $log = Join-Path $dataRoot 'bridge.log'
+Assert-UpdatePathSafe $log
 function Write-BridgeLog([string]$Message) {
+    Assert-UpdatePathSafe $log
     Add-Content -LiteralPath $log -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $Message" -Encoding UTF8
 }
 function Send-BridgeResponse($Stream, [int]$Code, $Body) {
@@ -97,7 +100,7 @@ try {
                 $offer = Get-UpdateOffer $root
                 if ($null -eq $offer) { throw '当前暂无可用更新。' }
                 $staged = Stage-UpdateOffer $root $offer
-                $body = @{ok=$true;message='更新已验证，即将重启模拟器。'}
+                $body = @{ok=$true;message='更新已验证，正在关闭模拟器并安装，完成后会自动启动。'}
             }
             Send-BridgeResponse $stream 200 $body
             if ($staged) { $applyRequested = $true }

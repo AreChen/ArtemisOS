@@ -1,0 +1,164 @@
+diff --git a/server/src/main/java/com/genymobile/scrcpy/Server.java b/server/src/main/java/com/genymobile/scrcpy/Server.java
+index d7d1a76..28d78c5 100644
+--- a/server/src/main/java/com/genymobile/scrcpy/Server.java
++++ b/server/src/main/java/com/genymobile/scrcpy/Server.java
+@@ -39,6 +39,8 @@ public final class Server {
+ 
+     public static final String SERVER_PATH;
+ 
++    private static volatile boolean connectionEstablished;
++
+     static {
+         String[] classPaths = System.getProperty("java.class.path").split(File.pathSeparator);
+         // By convention, scrcpy is always executed with the absolute path of scrcpy-server.jar as the first item in the classpath
+@@ -103,6 +105,7 @@ public final class Server {
+         List<AsyncProcessor> asyncProcessors = new ArrayList<>();
+ 
+         DesktopConnection connection = DesktopConnection.open(scid, tunnelForward, video, audio, control, sendDummyByte);
++        connectionEstablished = true;
+         try {
+             if (options.getSendDeviceMeta()) {
+                 connection.sendDeviceMeta(Device.getDeviceName());
+@@ -212,7 +215,19 @@ public final class Server {
+     public static void main(String... args) {
+         int status = 0;
+         try {
+-            internalMain(args);
++            boolean relaunched = "1".equals(System.getenv("ARTEMIS_SECURE_DISPLAY_ROOT_CHILD"));
++            if (ArtemisDisplayPolicy.mustRelaunch(Os.getuid(), relaunched)) {
++                ProcessBuilder builder = new ProcessBuilder(ArtemisDisplayPolicy.rootCommand(args));
++                builder.environment().put("CLASSPATH", System.getProperty("java.class.path"));
++                builder.environment().put("ARTEMIS_SECURE_DISPLAY_ROOT_CHILD", "1");
++                builder.environment().put("ARTEMIS_SECURE_DISPLAY_PARENT", Integer.toString(Os.getpid()));
++                builder.inheritIO();
++                Process process = builder.start();
++                status = process.waitFor();
++            } else {
++                watchWrapper();
++                internalMain(args);
++            }
+         } catch (Throwable t) {
+             Ln.e(t.getMessage(), t);
+             status = 1;
+@@ -233,7 +248,7 @@ public final class Server {
+             }
+         });
+ 
+-        dropRootPrivileges();
++        ArtemisDisplayPolicy.requireRoot(Os.getuid());
+ 
+         prepareMainLooper();
+ 
+@@ -276,16 +291,33 @@ public final class Server {
+         }
+     }
+ 
+-    @SuppressWarnings("deprecation")
+-    private static void dropRootPrivileges() {
+-        try {
+-            if (Os.getuid() == 0) {
+-                // Copy-paste does not work with root user
+-                // <https://github.com/Genymobile/scrcpy/issues/6224>
+-                Os.setuid(2000);
+-            }
+-        } catch (Exception e) {
+-            Ln.w("Cannot set UID", e);
++    // The shell wrapper cannot signal a root child. Detect its death even before sockets connect.
++    // AOSP su execs app_process directly, so PPID stays equal to the waiting Java wrapper PID.
++    private static void watchWrapper() {
++        final boolean hasWrapper = "1".equals(System.getenv("ARTEMIS_SECURE_DISPLAY_ROOT_CHILD"));
++        final int parent = hasWrapper ? Integer.parseInt(System.getenv("ARTEMIS_SECURE_DISPLAY_PARENT")) : -1;
++        if (hasWrapper && (parent <= 1 || Os.getppid() != parent)) {
++            throw new SecurityException("Artemis secure display wrapper disappeared before startup");
+         }
++        final long watchStarted = System.nanoTime();
++        Thread watchdog = new Thread(() -> {
++            while (true) {
++                try {
++                    Thread.sleep(500);
++                } catch (InterruptedException e) {
++                    return;
++                }
++                if (!connectionEstablished && System.nanoTime() - watchStarted >= 10_000_000_000L) {
++                    Ln.e("Artemis secure display client handshake timed out (10s); stopping privileged server");
++                    System.exit(1);
++                }
++                if (parent > 1 && Os.getppid() != parent) {
++                    System.err.println("Artemis secure display wrapper exited; stopping privileged display server");
++                    System.exit(1);
++                }
++            }
++        }, "artemis-wrapper-watchdog");
++        watchdog.setDaemon(true);
++        watchdog.start();
+     }
+-}
++}
+\ No newline at end of file
+diff --git a/server/src/main/java/com/genymobile/scrcpy/wrappers/DisplayManager.java b/server/src/main/java/com/genymobile/scrcpy/wrappers/DisplayManager.java
+index 1be04c3..04807b0 100644
+--- a/server/src/main/java/com/genymobile/scrcpy/wrappers/DisplayManager.java
++++ b/server/src/main/java/com/genymobile/scrcpy/wrappers/DisplayManager.java
+@@ -1,5 +1,7 @@
+ package com.genymobile.scrcpy.wrappers;
+ 
++import com.genymobile.scrcpy.ArtemisDisplayPolicy;
++
+ import com.genymobile.scrcpy.AndroidVersions;
+ import com.genymobile.scrcpy.FakeContext;
+ import com.genymobile.scrcpy.display.DisplayInfo;
+@@ -169,8 +171,13 @@ public final class DisplayManager {
+     }
+ 
+     public VirtualDisplay createVirtualDisplay(String name, int width, int height, int displayIdToMirror, Surface surface) throws Exception {
+-        Method method = getCreateVirtualDisplayMethod();
+-        return (VirtualDisplay) method.invoke(null, name, width, height, displayIdToMirror, surface);
++        ArtemisDisplayPolicy.requireRoot(android.system.Os.getuid());
++        if (displayIdToMirror != 0) {
++            throw new IllegalArgumentException("Artemis local secure display only mirrors display 0");
++        }
++        // Android 15's static 5-argument helper hard-codes AUTO_MIRROR without SECURE.
++        // The instance API accepts explicit flags and AUTO_MIRROR defaults to display 0.
++        return createNewVirtualDisplay(name, width, height, 1, surface, ArtemisDisplayPolicy.mirrorFlags());
+     }
+ 
+     public VirtualDisplay createNewVirtualDisplay(String name, int width, int height, int dpi, Surface surface, int flags) throws Exception {
+diff --git a/server/src/main/java/com/genymobile/scrcpy/video/ScreenCapture.java b/server/src/main/java/com/genymobile/scrcpy/video/ScreenCapture.java
+index 0768181..b521850 100644
+--- a/server/src/main/java/com/genymobile/scrcpy/video/ScreenCapture.java
++++ b/server/src/main/java/com/genymobile/scrcpy/video/ScreenCapture.java
+@@ -1,6 +1,7 @@
+ package com.genymobile.scrcpy.video;
+ 
+ import com.genymobile.scrcpy.AndroidVersions;
++import com.genymobile.scrcpy.ArtemisDisplayPolicy;
+ import com.genymobile.scrcpy.Options;
+ import com.genymobile.scrcpy.control.PositionMapper;
+ import com.genymobile.scrcpy.device.Device;
+@@ -107,6 +108,10 @@ public class ScreenCapture extends SurfaceCapture {
+ 
+     @Override
+     public void start(Surface surface) throws IOException {
++        ArtemisDisplayPolicy.requireRoot(android.system.Os.getuid());
++        if (displayId != 0) {
++            throw new IOException("Artemis local secure display supports only the default display (0)");
++        }
+         if (display != null) {
+             SurfaceControl.destroyDisplay(display);
+             display = null;
+@@ -208,13 +213,9 @@ public class ScreenCapture extends SurfaceCapture {
+     }
+ 
+     private static IBinder createDisplay() throws Exception {
+-        // Since Android 12 (preview), secure displays could not be created with shell permissions anymore.
+-        // On Android 12 preview, SDK_INT is still R (not S), but CODENAME is "S".
+-        boolean secure = Build.VERSION.SDK_INT < AndroidVersions.API_30_ANDROID_11 || (Build.VERSION.SDK_INT == AndroidVersions.API_30_ANDROID_11
+-                && !"S".equals(Build.VERSION.CODENAME));
+-        return SurfaceControl.createDisplay("scrcpy", secure);
++        ArtemisDisplayPolicy.requireRoot(android.system.Os.getuid());
++        return SurfaceControl.createDisplay("scrcpy", true);
+     }
+-
+     private static void setDisplaySurface(IBinder display, Surface surface, Rect deviceRect, Rect displayRect, int layerStack) {
+         SurfaceControl.openTransaction();
+         try {

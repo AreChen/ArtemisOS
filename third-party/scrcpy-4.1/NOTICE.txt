@@ -1,0 +1,59 @@
+ArtemisOS 1.0.6 — independent display runtime
+==========================================
+
+ArtemisOS launches the unmodified scrcpy 4.1 Windows x64 client as a separate
+process. Branding is supplied as a separate PNG. Original scrcpy LICENSE.txt
+is retained beside the executable. Copyrights remain with their owners;
+no endorsement of ArtemisOS is claimed.
+
+Components and full accompanying license texts:
+* scrcpy 4.1 client, Android server and original artwork: Genymobile and
+  contributors; Apache-2.0, scrcpy-LICENSE.txt.
+* SDL 3.4.12: Sam Lantinga and contributors; zlib, SDL-LICENSE.txt.
+  Bundled HIDAPI uses the BSD alternative (SDL-hidapi-LICENSE-bsd.txt);
+  original license/choice notices are also retained. Bundled yuv2rgb's
+  permission/copyright notice is in SDL-yuv2rgb-LICENSE.
+* FFmpeg 8.1.2 (avcodec-62, avformat-62, avutil-60, swresample-6):
+  FFmpeg developers; LGPL-2.1-or-later, FFmpeg-COPYING.LGPLv2.1 and
+  FFmpeg-LICENSE.md. Actual configuration is recorded in
+  evidence/observed-ffmpeg-build.txt: shared DLLs, no enable-gpl/nonfree,
+  with libdav1d and zlib enabled.
+* libusb 1.0.30: libusb contributors; LGPL-2.1-or-later, libusb-COPYING.
+* dav1d 1.5.3, statically included by FFmpeg: VideoLAN/dav1d authors;
+  BSD-2-Clause, dav1d-COPYING.
+* zlib 1.3.1, statically included by FFmpeg: Jean-loup Gailly/Mark Adler;
+  zlib-LICENSE. Actual DLLs contain the inflate 1.3.1 identifier.
+* MinGW-w64 runtime: full original copyright/permission notices are in
+  MinGW-w64-runtime-COPYING.txt, MinGW-w64-COPYING, MinGW-w64-DISCLAIMER,
+  MinGW-w64-DISCLAIMER.PD and MinGW-w64-AUTHORS. Additional toolchain
+  notices are in MinGW-w64-notices.txt.
+* GCC 13 runtime support: GPLv3 with GCC Runtime Library Exception 3.1;
+  GCC-COPYING3 and GCC-COPYING.RUNTIME. Compiler executables are not bundled.
+
+Corresponding sources and replacement rights
+--------------------------------------------
+Complete display sources, original build recipes and checksums are offered
+from the same public download location as the installer and OTA:
+https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/sources/ArtemisOS15-Display-Sources-1.0.6.zip
+
+Relative to update/server.txt: sources/ArtemisOS15-Display-Sources-1.0.6.zip
+(preserve OpenList's ?d query). sources.json records its size and SHA-256.
+This uses LGPL 2.1 sections 4 and 6(d)'s equivalent-access route: downloading
+source is optional, but the publisher must upload and retain equivalent
+public access before distributing the binaries. Upstream links alone do not
+replace the accompanying complete source package.
+
+Users may copy, modify and redistribute LGPL libraries under their terms.
+Compatible modified DLLs can replace those beside runtime/scrcpy.exe.
+Reverse engineering for debugging modifications to these libraries is
+permitted; ArtemisOS adds no restriction overriding that permission.
+The complete Apache-licensed scrcpy client and all LGPL sources/build recipes
+are offered, permitting rebuilding/relinking the display program. The native
+ArtemisOS shell communicates using processes, ADB and window management;
+it does not link these LGPL DLLs. Preparation hashes document the release;
+they are not runtime integrity restrictions on users' replacement DLLs.
+
+The complete licenses and warranty disclaimers are retained without truncation.
+FFmpeg-permissive-notices.txt and SDL-permissive-notices.txt additionally retain
+original BSD/MIT-style source comment notices, including uncompiled code.
+See BUILDING.md for evidence, source contents and reproducibility limitations.

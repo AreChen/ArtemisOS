@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <add-resource name="numeric_to_operator" type="array"/>
+    <string-array name="numeric_to_operator">
+        <item numeric="310260">T-Mobile=TMOBILE</item>
+        <item numeric="46000">中国移动=中国移动</item>
+        <item numeric="46003">中国电信=中国电信</item>
+        <item numeric="46001">中国联通=中国联通</item>
+    </string-array>
+</resources>

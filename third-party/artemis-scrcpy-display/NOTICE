@@ -1,0 +1,16 @@
+ArtemisOS local secure-display server, derived from scrcpy 4.1.
+Upstream: https://github.com/Genymobile/scrcpy/tree/v4.1
+Copyright (C) 2018 Genymobile
+Copyright (C) 2018-2026 Romain Vimont
+License: Apache License, Version 2.0 (see LICENSE).
+
+ArtemisOS modifications: process-local root bootstrap and parent lifetime watch;
+retain root only in the dedicated display server; request a secure auto-mirrored
+default display and a secure-only compatibility fallback; rebuild scripts and
+focused policy regression tests. The official Windows C client is unchanged.
+
+This is a modified server, not an official upstream release. The wire protocol
+version remains 4.1 for compatibility with the unmodified official client.
+Android framework AIDL/hidden-interface stub notices are retained in the complete
+upstream source archive. Other redistributed client dependencies keep their
+existing separate licenses and source notices.

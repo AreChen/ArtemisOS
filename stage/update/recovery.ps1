@@ -16,6 +16,29 @@ try {
 $mutex = New-Object Threading.Mutex($false, $mutexName)
 $lockHeld = $false
 
+# Recovery deliberately stays independent of core.ps1: core may itself have
+# been interrupted during an update. Never enumerate the user's AVD files.
+function Assert-RecoveryPathSafe([string]$Path) {
+    $parts = New-Object 'System.Collections.Generic.List[string]'
+    $part = [IO.Path]::GetFullPath($Path)
+    while ($part) {
+        $parts.Add($part)
+        $parent = [IO.Path]::GetDirectoryName($part.TrimEnd('\'))
+        if (-not $parent -or [string]::Equals($part, $parent, [StringComparison]::OrdinalIgnoreCase)) { break }
+        $part = $parent
+    }
+    for ($i = $parts.Count - 1; $i -ge 0; $i--) {
+        try { $attributes = [IO.File]::GetAttributes($parts[$i]) }
+        catch {
+            $reason = $_.Exception
+            while ($reason -is [Management.Automation.MethodInvocationException] -and $reason.InnerException) { $reason = $reason.InnerException }
+            if ($reason -is [IO.FileNotFoundException] -or $reason -is [IO.DirectoryNotFoundException]) { continue }
+            throw '无法确认恢复路径是否安全。'
+        }
+        if (($attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw '恢复路径不能包含链接或重解析点。' }
+    }
+}
+
 function Get-RecoveryTarget([string]$Relative) {
     $rootFiles = @('launch.ps1','settings.ps1','initialize.ps1','configure.ps1','configure.vbs',
         'start-auto.vbs','start-software.vbs','version.ini','ArtemisOS15.ico')
@@ -30,6 +53,7 @@ function Get-RecoveryTarget([string]$Relative) {
     $prefix = [IO.Path]::GetFullPath($root).TrimEnd('\') + '\'
     $target = [IO.Path]::GetFullPath((Join-Path $root ($Relative.Replace('/', '\'))))
     if (-not $target.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) { throw '恢复路径超出安装目录。' }
+    Assert-RecoveryPathSafe $target
     $part = $root
     foreach ($segment in $segments) {
         $part = Join-Path $part $segment
@@ -43,6 +67,8 @@ function Get-RecoveryTarget([string]$Relative) {
 try {
 try { $lockHeld = $mutex.WaitOne(30000) } catch [Threading.AbandonedMutexException] { $lockHeld = $true }
 if (-not $lockHeld) { throw '更新正在进行中，请稍后重试。' }
+Assert-RecoveryPathSafe $flag
+Assert-RecoveryPathSafe $journalPath
 if (Test-Path -LiteralPath $flag -PathType Leaf) {
     if (-not (Test-Path -LiteralPath $journalPath -PathType Leaf)) { throw '更新恢复记录缺失，请勿重新安装或清理数据。' }
     $journal = [IO.File]::ReadAllText($journalPath) | ConvertFrom-Json
@@ -53,6 +79,7 @@ if (Test-Path -LiteralPath $flag -PathType Leaf) {
         if ($entry.existed) {
             if ($entry.backup -notmatch '^[0-9]{4}\.bak$' -or $entry.sha256 -notmatch '^[0-9a-f]{64}$') { throw '备份记录无效。' }
             $backup = Join-Path $pending $entry.backup
+            Assert-RecoveryPathSafe $backup
             if (-not (Test-Path -LiteralPath $backup -PathType Leaf) -or
                 (Get-FileHash -LiteralPath $backup -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry.sha256) {
                 throw '更新备份校验失败，请保留当前文件并联系维护人员。'
@@ -62,8 +89,10 @@ if (Test-Path -LiteralPath $flag -PathType Leaf) {
     foreach ($entry in $entries) {
         $target = Get-RecoveryTarget $entry.path
         if ($entry.existed) {
+            Assert-RecoveryPathSafe (Join-Path $pending $entry.backup)
             [void][IO.Directory]::CreateDirectory((Split-Path -Parent $target))
             $temp = $target + '.artemis-' + [Guid]::NewGuid().ToString('N') + '.tmp'
+            Assert-RecoveryPathSafe $temp
             [IO.File]::Copy((Join-Path $pending $entry.backup), $temp)
             if (Test-Path -LiteralPath $target -PathType Leaf) {
                 $displaced = $target + '.artemis-prev-' + [Guid]::NewGuid().ToString('N') + '.tmp'
@@ -75,6 +104,7 @@ if (Test-Path -LiteralPath $flag -PathType Leaf) {
             Remove-Item -LiteralPath $target -Force
         }
     }
+    Assert-RecoveryPathSafe (Join-Path $pending 'recovered.flag')
     [IO.File]::Move($flag, (Join-Path $pending 'recovered.flag'))
 }
 } catch {

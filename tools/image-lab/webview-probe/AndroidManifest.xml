@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="internal.artemis.webviewprobe">
+    <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="35" />
+    <queries><package android:name="com.google.android.gms" /></queries>
+    <application android:label="Artemis WebView Probe" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <activity android:name=".MainActivity" android:exported="true" />
+    </application>
+</manifest>

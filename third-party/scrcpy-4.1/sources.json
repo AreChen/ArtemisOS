@@ -1,0 +1,443 @@
+{
+  "schemaVersion": 2,
+  "scrcpyVersion": "4.1",
+  "platform": "windows-x86_64",
+  "redistributionReviewStatus": "source-bundle-prepared-publication-required",
+  "sourceArchiveIncluded": false,
+  "runtimeProvenance": "Official scrcpy 4.1 Windows x64 ZIP verified against GitHub release digest; every copied binary/artwork entry matched the pinned WinGet bytes.",
+  "releaseUrl": "https://github.com/Genymobile/scrcpy/releases/tag/v4.1",
+  "officialArchiveSha256": "5b12172b3264b2889f4583ee64752ce832e29bc8b1089dca81093459697165db",
+  "sourceDelivery": "LGPL-2.1 sections 4 and 6(d): equivalent public access from the same distribution place; upload/readback must precede binary publication.",
+  "sourceBundle": {
+    "file": "dist/ArtemisOS15-Display-Sources-1.0.6.zip",
+    "relativePublicPath": "sources/ArtemisOS15-Display-Sources-1.0.6.zip",
+    "url": "https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/sources/ArtemisOS15-Display-Sources-1.0.6.zip",
+    "size": 32253040,
+    "sha256": "5f323434aad8d3343485f8cc587cf39cfff472ea6a1e87ccfcd03b3205875ca8",
+    "publicAvailabilityVerified": true
+  },
+  "dependencies": [
+    {
+      "name": "SDL",
+      "version": "3.4.12",
+      "license": "Zlib",
+      "source": "https://github.com/libsdl-org/SDL/archive/refs/tags/release-3.4.12.tar.gz"
+    },
+    {
+      "name": "FFmpeg",
+      "version": "8.1.2",
+      "license": "LGPL-2.1-or-later",
+      "source": "https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz"
+    },
+    {
+      "name": "libusb",
+      "version": "1.0.30",
+      "license": "LGPL-2.1-or-later",
+      "source": "https://github.com/libusb/libusb/archive/refs/tags/v1.0.30.tar.gz"
+    },
+    {
+      "name": "dav1d",
+      "version": "1.5.3",
+      "license": "BSD-2-Clause",
+      "source": "https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz"
+    },
+    {
+      "name": "zlib",
+      "version": "1.3.1",
+      "license": "Zlib",
+      "source": "https://zlib.net/fossils/zlib-1.3.1.tar.gz"
+    }
+  ],
+  "files": [
+    {
+      "file": "BUILDING.md",
+      "size": 3968,
+      "sha256": "53a79fb90cde8c1e018e3b1ed56a808655fe4d658aef70303e13321292f61c45"
+    },
+    {
+      "file": "build-reference/.github/workflows/release.yml",
+      "size": 15309,
+      "sha256": "0dd22b1e2c518f5beff338d6202b1dc9b48abbfa525ce122843a675eb83dc53f"
+    },
+    {
+      "file": "build-reference/app/deps/_init",
+      "size": 1759,
+      "sha256": "9f15eadc50dcc8ac88f141be4072a7621e728044b3b472af86ce84f605f61f89"
+    },
+    {
+      "file": "build-reference/app/deps/dav1d.sh",
+      "size": 1588,
+      "sha256": "65073c6121f0ae8eb6f7113efee2f00ad24e7bb6c406e7329bd3e28777fc82df"
+    },
+    {
+      "file": "build-reference/app/deps/ffmpeg.sh",
+      "size": 3439,
+      "sha256": "59e5b0c605492deaa58ab1c21f0ce8de6508b466efe8535cc5156eaf2d147a1e"
+    },
+    {
+      "file": "build-reference/app/deps/libusb.sh",
+      "size": 1312,
+      "sha256": "8c0e09827e2bdc943e5def2b2bff80dd9fffe4e8457f116ee088da86a4071f4e"
+    },
+    {
+      "file": "build-reference/app/deps/sdl.sh",
+      "size": 1888,
+      "sha256": "19c3be346cc28102824ed8658439789d747cef6a42880f9a75c9e8c46536dcdf"
+    },
+    {
+      "file": "build-reference/cross_win64.txt",
+      "size": 431,
+      "sha256": "9f31c54669e299a26ee0f76dd24bba30de6cf8f46695b2da0ed621d15334b3e3"
+    },
+    {
+      "file": "build-reference/doc/build.md",
+      "size": 7195,
+      "sha256": "2e028d3b8a38134de06d7f78b5dea7b165f6ebb7d79c029fa410f74974858b0d"
+    },
+    {
+      "file": "build-reference/release/.gitignore",
+      "size": 14,
+      "sha256": "c9e987550add50cb770cd2786fd94b5e69d7e35b392f22722e94706c63074c9a"
+    },
+    {
+      "file": "build-reference/release/build_common",
+      "size": 164,
+      "sha256": "a5b4d3915842663f835bacf4cc2f1f57885b9ba146e7e088b0dba2c62e6d9e21"
+    },
+    {
+      "file": "build-reference/release/build_linux.sh",
+      "size": 1315,
+      "sha256": "86b10f91bcf6a404ee3c629bdcbbc4cded123561a2e67ee42128e804139ad4a1"
+    },
+    {
+      "file": "build-reference/release/build_macos.sh",
+      "size": 1315,
+      "sha256": "0e8b77465b893b37a679322dd785a917c12251d11f0aa3b2f9318421ffb4bf9c"
+    },
+    {
+      "file": "build-reference/release/build_server.sh",
+      "size": 378,
+      "sha256": "e171fa9e511ab54b16201499c1a4c4a9442815e5a9760ef247714bfc07d01a72"
+    },
+    {
+      "file": "build-reference/release/build_windows.sh",
+      "size": 1606,
+      "sha256": "311942765e204673444a1aa806f3b7db16b32c5fac9b6bbd1513c457868d589f"
+    },
+    {
+      "file": "build-reference/release/generate_checksums.sh",
+      "size": 412,
+      "sha256": "3d84d6b80516bd9e42d4a61cbdadaf5854602df7d106b057980f99642215dc03"
+    },
+    {
+      "file": "build-reference/release/package_client.sh",
+      "size": 1185,
+      "sha256": "76465dd8c4c627f997f84e623421ebad6f56457201eb76d4853cc2eed7349d2a"
+    },
+    {
+      "file": "build-reference/release/package_server.sh",
+      "size": 283,
+      "sha256": "de59496b67ee84d0c6f575321e8ac929cc68283030ef8954395fba9ce470159f"
+    },
+    {
+      "file": "build-reference/release/release.sh",
+      "size": 447,
+      "sha256": "499b6e5631cf9034eb523f33a599e15dbe4b8ed38a3daf8247c6b8249355034a"
+    },
+    {
+      "file": "build-reference/release/test_client.sh",
+      "size": 281,
+      "sha256": "2cb19c59a085cf7ec47bab5721c73dcf172600f9c865dba222b5578bcb082987"
+    },
+    {
+      "file": "build-reference/release/test_server.sh",
+      "size": 152,
+      "sha256": "16ae66863feec60967962de41fe968663420628a2b8c376c01b239b88db2b03d"
+    },
+    {
+      "file": "Build-SourceBundle.ps1",
+      "size": 7849,
+      "sha256": "0f081125ca980d5a3b19dce9f06dcefa7f428b29017d75ba1385378a419cbeca"
+    },
+    {
+      "file": "dav1d-COPYING",
+      "size": 1317,
+      "sha256": "dd92c3c2247c5651606fc23a5e2d6a1ebc5ace9a3e49cbde0e12f05ad1cb1ee5"
+    },
+    {
+      "file": "evidence/build-to-tag-comparison.json",
+      "size": 5378,
+      "sha256": "754ab1b989af0dea61a4c6caf0b5ceaa53eb1597f30d0a6847e1305e4e201afc"
+    },
+    {
+      "file": "evidence/observed-ffmpeg-build.txt",
+      "size": 1051,
+      "sha256": "796be2db5777bb7e336eeb6c9c708a7b3e992f955ac4f7f962627de645a3f38d"
+    },
+    {
+      "file": "evidence/observed-scrcpy-version.txt",
+      "size": 250,
+      "sha256": "2047f089501b75566e78014de5d19f623427c7809a12a505e8fce85c8fa8c123"
+    },
+    {
+      "file": "evidence/upstream-build-run.json",
+      "size": 314,
+      "sha256": "4426424e0336d3def802b9096a7043e1193ab36e71b81b64fbc75d1b15370e95"
+    },
+    {
+      "file": "evidence/upstream-release.json",
+      "size": 2484,
+      "sha256": "981d9a107f2fa9d2e031d3101281f35530adf78059980b37045201cbfc237b9f"
+    },
+    {
+      "file": "evidence/upstream-SHA256SUMS.txt",
+      "size": 556,
+      "sha256": "c622ac56f2c2c1c4b84bd562f76fb1a92d10940430bd8b1ec6141dbb5e3fffbb"
+    },
+    {
+      "file": "evidence/upstream-SHA256SUMS.txt.asc",
+      "size": 833,
+      "sha256": "694a317185bedd3a730bb0d967cb487ff62e334b8d3938bcabb5b235e85e985d"
+    },
+    {
+      "file": "evidence/upstream-win64-jobs.json",
+      "size": 521,
+      "sha256": "36a7c3e7f60f1f94d4b0155223ff03c94e270ce4da1bd46894087b0be0a8dc0f"
+    },
+    {
+      "file": "FFmpeg-COPYING.LGPLv2.1",
+      "size": 26517,
+      "sha256": "246041b6ecf9bc32d718a62c57877c78b5eb397b6467e74ed7ae2626ab189c30"
+    },
+    {
+      "file": "FFmpeg-LICENSE.md",
+      "size": 4346,
+      "sha256": "2e1d16c72fd74e12063776371da757322f8b77589386532f4fd8634bde7de1af"
+    },
+    {
+      "file": "FFmpeg-permissive-notices.txt",
+      "size": 183307,
+      "sha256": "6ff8f7d5e7a0e710f7559702386958220a5d6ed237706c62c4b4f381ec2e2717"
+    },
+    {
+      "file": "GCC-COPYING.RUNTIME",
+      "size": 3324,
+      "sha256": "9d6b43ce4d8de0c878bf16b54d8e7a10d9bd42b75178153e3af6a815bdc90f74"
+    },
+    {
+      "file": "GCC-COPYING3",
+      "size": 35147,
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "file": "libusb-COPYING",
+      "size": 26436,
+      "sha256": "5df07007198989c622f5d41de8d703e7bef3d0e79d62e24332ee739a452af62a"
+    },
+    {
+      "file": "MinGW-w64-AUTHORS",
+      "size": 2398,
+      "sha256": "8f308316e7a94b8410f871868bd3948f126526dc1775aeee97a0e365f9a0fd9f"
+    },
+    {
+      "file": "MinGW-w64-COPYING",
+      "size": 2326,
+      "sha256": "99a69660981156c21336fdb5661f89341b013c94e4bf9e1c7467b4745718397f"
+    },
+    {
+      "file": "MinGW-w64-DISCLAIMER",
+      "size": 2245,
+      "sha256": "039ed6b4f31bb7fb97e733170b58cc435335352e4745734fcfd113877fdaf340"
+    },
+    {
+      "file": "MinGW-w64-DISCLAIMER.PD",
+      "size": 454,
+      "sha256": "87f33608570312a0f2a9745edcb2527275df813b13982e8c3b3f893d88a4141a"
+    },
+    {
+      "file": "MinGW-w64-notices.txt",
+      "size": 5905,
+      "sha256": "f38e6194bd3bfa1b654f118e5acefe0aead437bbe669eee43957ccc65a7127f1"
+    },
+    {
+      "file": "MinGW-w64-runtime-COPYING.txt",
+      "size": 10936,
+      "sha256": "e9b2dc02451ea29092a1f25fa0f3c07207ed421f1807dffb0c4e6dce69dee7bd"
+    },
+    {
+      "file": "NOTICE.txt",
+      "size": 3558,
+      "sha256": "e9622480b221c87f3ddbda258531ba61e3a11bdc08d3b6454ec887d03e52ff1e"
+    },
+    {
+      "file": "README.md",
+      "size": 1335,
+      "sha256": "e4303a5d00b8531808582a3df7c2686164a70b772236f5880778c0c724652a64"
+    },
+    {
+      "file": "scrcpy-LICENSE.txt",
+      "size": 11387,
+      "sha256": "01c12035bf35af37241298dc7ad538eb2a07e5c940437bc6876feeaa9d1951d0"
+    },
+    {
+      "file": "SDL-hidapi-LICENSE.txt",
+      "size": 530,
+      "sha256": "7d3b087c34f35d4d538e3bcddd1ff8f66e92f9ef336881999482800ddf840913"
+    },
+    {
+      "file": "SDL-hidapi-LICENSE-bsd.txt",
+      "size": 1534,
+      "sha256": "30eb1bef29b46f8ba7ab8b416035dbd93cb034a45481dd97815b944284582cd2"
+    },
+    {
+      "file": "SDL-hidapi-LICENSE-orig.txt",
+      "size": 264,
+      "sha256": "fb5436aa63d1b71a8dfbf74ecaf1a5b4e1ec4df7f80074d11fec99284f69ca5f"
+    },
+    {
+      "file": "SDL-LICENSE.txt",
+      "size": 884,
+      "sha256": "1c040b8271b37e5076359f8fd54240e371114112924d2df81ef87c7d6a1dfdfd"
+    },
+    {
+      "file": "SDL-permissive-notices.txt",
+      "size": 33248,
+      "sha256": "b1170effe75f2e1a5e7484449bd1591f51ad259dd402ba920997505ec17a3da8"
+    },
+    {
+      "file": "SDL-yuv2rgb-LICENSE",
+      "size": 1480,
+      "sha256": "f7d74004cc75778cae46c5f0139f244d67c07ef64cf51937e8272352197dcb18"
+    },
+    {
+      "file": "upstream-dav1d.sh",
+      "size": 1588,
+      "sha256": "65073c6121f0ae8eb6f7113efee2f00ad24e7bb6c406e7329bd3e28777fc82df"
+    },
+    {
+      "file": "upstream-ffmpeg.sh",
+      "size": 3439,
+      "sha256": "59e5b0c605492deaa58ab1c21f0ce8de6508b466efe8535cc5156eaf2d147a1e"
+    },
+    {
+      "file": "upstream-libusb.sh",
+      "size": 1312,
+      "sha256": "8c0e09827e2bdc943e5def2b2bff80dd9fffe4e8457f116ee088da86a4071f4e"
+    },
+    {
+      "file": "upstream-sdl.sh",
+      "size": 1888,
+      "sha256": "19c3be346cc28102824ed8658439789d747cef6a42880f9a75c9e8c46536dcdf"
+    },
+    {
+      "file": "zlib-LICENSE",
+      "size": 1002,
+      "sha256": "845efc77857d485d91fb3e0b884aaa929368c717ae8186b66fe1ed2495753243"
+    },
+    {
+      "file": "source-package-manifest.json",
+      "size": 22646,
+      "sha256": "ede280e8cd6fc1e24436a489f89cbc61f5d0a1d4117bd834931efd89b702b4d6"
+    }
+  ],
+  "sourceArchives": [
+    {
+      "file": "source-archives/scrcpy-build-fa57d7c6.tar.gz",
+      "url": "https://codeload.github.com/Genymobile/scrcpy/tar.gz/fa57d7c6b47139797a8e103f87719740718887d4",
+      "size": 493107,
+      "sha256": "92612b81cf7d529376357f4ab92f26b9f5d1f4e239e226c971dd12553c3e44cb"
+    },
+    {
+      "file": "source-archives/scrcpy-4.1.tar.gz",
+      "url": "https://codeload.github.com/Genymobile/scrcpy/tar.gz/refs/tags/v4.1",
+      "size": 493134,
+      "sha256": "537b2ade623cb94b6edddfa5c61bf0b0af21484aa8365ea2531b686ea573249a"
+    },
+    {
+      "file": "source-archives/ffmpeg-8.1.2.tar.xz",
+      "url": "https://ffmpeg.org/releases/ffmpeg-8.1.2.tar.xz",
+      "size": 11710924,
+      "sha256": "464beb5e7bf0c311e68b45ae2f04e9cc2af88851abb4082231742a74d97b524c"
+    },
+    {
+      "file": "source-archives/libusb-1.0.30.tar.gz",
+      "url": "https://github.com/libusb/libusb/archive/refs/tags/v1.0.30.tar.gz",
+      "size": 436332,
+      "sha256": "2ae28adb0bb9558c86135c4e1c11b320b0805461e207a64a6e520a114094bf07"
+    },
+    {
+      "file": "source-archives/SDL-release-3.4.12.tar.gz",
+      "url": "https://github.com/libsdl-org/SDL/archive/refs/tags/release-3.4.12.tar.gz",
+      "size": 15846095,
+      "sha256": "b68381f06a7580e63400b3b6eb547ec57d8c3ebde70f9f40e0aba530ba05da27"
+    },
+    {
+      "file": "source-archives/dav1d-1.5.3.tar.gz",
+      "url": "https://code.videolan.org/videolan/dav1d/-/archive/1.5.3/dav1d-1.5.3.tar.gz",
+      "size": 1713950,
+      "sha256": "cbe212b02faf8c6eed5b6d55ef8a6e363aaab83f15112e960701a9c3df813686"
+    },
+    {
+      "file": "source-archives/zlib-1.3.1.tar.gz",
+      "url": "https://zlib.net/fossils/zlib-1.3.1.tar.gz",
+      "size": 1512791,
+      "sha256": "9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23"
+    }
+  ],
+  "noticeOrigins": {
+    "scrcpy": "https://github.com/Genymobile/scrcpy/tree/v4.1",
+    "buildReference": "https://github.com/Genymobile/scrcpy/tree/fa57d7c6b47139797a8e103f87719740718887d4",
+    "ffmpeg": "https://github.com/FFmpeg/FFmpeg/tree/n8.1.2",
+    "sdl": "https://github.com/libsdl-org/SDL/tree/release-3.4.12",
+    "libusb": "https://github.com/libusb/libusb/tree/v1.0.30",
+    "dav1d": "https://code.videolan.org/videolan/dav1d/-/tree/1.5.3",
+    "zlib": "https://github.com/madler/zlib/tree/v1.3.1",
+    "mingwRuntime": "https://github.com/mingw-w64/mingw-w64/blob/v12.0.0/COPYING.MinGW-w64-runtime/COPYING.MinGW-w64-runtime.txt",
+    "mingwNotices": "https://github.com/mingw-w64/mingw-w64/blob/v12.0.0/COPYING.MinGW-w64/COPYING.MinGW-w64.txt",
+    "gccException": "https://github.com/gcc-mirror/gcc/blob/releases/gcc-13.3.0/COPYING.RUNTIME",
+    "gccGPL": "https://github.com/gcc-mirror/gcc/blob/releases/gcc-13.3.0/COPYING3",
+    "permissiveNotices": "Original comment blocks collected from the supplied complete FFmpeg/SDL source archives, including uncompiled platform code."
+  },
+  "binaryFiles": [
+    {
+      "file": "scrcpy.exe",
+      "sha256": "575ca1284345c7b3975585bc61b66d564a9a4f1ecb28fbb4c599c92a124054a9"
+    },
+    {
+      "file": "scrcpy-server",
+      "sha256": "deacb991ed2509715160ffdc7907e47b4160eb30d1566217e9047fd5b8850cae"
+    },
+    {
+      "file": "SDL3.dll",
+      "sha256": "0619eb2da6032984dc6e2098897aeacdbd66b0415bb87bc03e628159ba60b15d"
+    },
+    {
+      "file": "avcodec-62.dll",
+      "sha256": "7179de2b132e78eb0a76458a0a3859dfe1edcbb6d2eeb4a456f03f7ae96d5b66"
+    },
+    {
+      "file": "avformat-62.dll",
+      "sha256": "7232316acce00371d89f589748b570d95885ea6bbfc1972a0a9d3b884903eee1"
+    },
+    {
+      "file": "avutil-60.dll",
+      "sha256": "3d6170dd68549c6f39b8d8710a37f79d9678905df705a8b0a6bc7ea9037daddf"
+    },
+    {
+      "file": "swresample-6.dll",
+      "sha256": "4cc809d2cd822e186906fbc9d8a0acffa937e35de1282b2e2ab7346cfed96fed"
+    },
+    {
+      "file": "libusb-1.0.dll",
+      "sha256": "8ec130918a476b0dbd114c803e71314360608ceabdd2b6f38c83f6f208c608e0"
+    },
+    {
+      "file": "LICENSE.txt",
+      "sha256": "01c12035bf35af37241298dc7ad538eb2a07e5c940437bc6876feeaa9d1951d0"
+    },
+    {
+      "file": "disconnected.png",
+      "sha256": "e394873cd3e2cc3ab0cca6212b10ed2a8a0fad11a05675c8a9fa6f26f3ae12c0"
+    }
+  ]
+}

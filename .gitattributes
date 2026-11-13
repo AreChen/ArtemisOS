@@ -1,3 +1,5 @@
 # Release hashes depend on exact installed bytes. Keep source text files in
-# stage/ in LF form even when a Windows clone enables core.autocrlf.
-/stage/** text=auto eol=lf
+# stage/ byte-for-byte, including BOM and line endings, on every clone.
+/stage/** -text
+# Upstream notices and source recipes have pinned SHA256 values as well.
+/third-party/** -text
