@@ -23,7 +23,7 @@ AMD 用户需安装支持 Vulkan 的显卡驱动。Windows 显示名与驱动的
 - 本机实际检测到 Intel UHD Graphics 770，未检测到 AMD 显卡。合成测试通过不等于 AMD 实机认证。
 - 精确安装包在隔离标准用户账户完成 1.0.9→1.1.0 不指定目录的自动发现覆盖升级，532 个文件核对通过；用户数据逐字节保留、旧镜像复用、原生前端偏好及卸载保留数据通过。测试账户、profile 和目录已独立确认清理。
 - 本机 `E:\ArtemisOS15` 使用同一安装包保留数据覆盖为 1.1.0；偏好和 8 份 AVD/用户配置元数据不变，Android 启动完成，Intel UHD 770 硬件 Vulkan 初始化通过，窗口标题为 `ArtemisOS 15 v1.1.0`。未使用 computer-use，也未人工确认该次启动后的应用画面。
-- 已匿名验证线上 1.0.2 起的逐级签名链至 1.1.0，以及最新版本无更新清单；5 个新对象完整大小/SHA256 均通过。完整安装包和校验文件已上传并匿名完整回读，实际下载主机为 `media-qhxn-fj-person.qh6oss.ctyunxs.cn`，不是 OpenList 文件代理。
+- 已匿名验证线上 1.0.2 起的逐级签名链至 1.1.0，以及最新版本无更新清单；5 个新对象完整大小/SHA256 均通过。完整安装包和校验文件已上传并匿名完整回读，实际下载主机为 `天翼云下载节点`，不是 OpenList 文件代理。
 
 ## 交付与协议
 
@@ -33,9 +33,8 @@ AMD 用户需安装支持 Vulkan 的显卡驱动。Windows 显示名与驱动的
 
 完整安装包 1,233,393,659 字节，SHA256：`2631dd6eb013d749e6c574986ba90fd4cb3e1e3ccad6db73fdb84ba58a15c2b9`。原目录覆盖升级，无需先卸载。旧更新器若无法访问新下载入口，可直接使用完整安装包覆盖，保留原实例。
 
-- [完整安装包](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.1.0.exe)
-- [SHA256](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.1.0.exe.sha256)
+- 完整安装包通过项目分发渠道提供。已安装用户可通过内置更新入口升级。
 - [OTA 验收](evidence/release-1.1.0/ota-test-result.json) · [完整包验收](evidence/release-1.1.0/installer-smoke-result.json) · [发布记录](evidence/release-1.1.0/publication.json)
 - [本机升级](evidence/release-1.1.0/local-install-result.json) · [本机 Intel 初始化](evidence/release-1.1.0/local-intel-initialize.log) · [隔离账户清理](evidence/release-1.1.0/smoke-cleanup-evidence.json)
 
-继续使用 `/d/CLOUD/Footage/EAPIL/Artemis/ota/` 永久入口，302 跳转至天翼云直连，临时下载 URL 不写入配置，不修改 OpenList 全局代理或分享设置。沿用 [1.0.9 的专用显示服务源码及重建证据](release-1.0.9-secure-display.md)，不重新声称已构建或验证该未修改组件。
+OTA 入口返回 HTTP 302，客户端直连天翼云。沿用 [1.0.9 的专用显示服务源码及重建证据](release-1.0.9-secure-display.md)。

@@ -11,14 +11,14 @@
 ## 已验证事实
 
 - 产品：Windows 原生 Android 模拟器 ArtemisOS 15。
-- OTA 服务入口：`https://cloudx.playones.com/sd/YCsIY2UB/?d`。这是旧客户端已保存的地址，不能假设先改所有用户的配置。
+- 旧客户端已保存原分享入口。迁移方案需考虑用户仍在使用该入口。
 - 文件布局：`manifests/<当前版本>.json`、对应 `.sig`、`objects/<SHA256>`。对象按哈希寻址；客户端先验清单签名，再检查下载大小、对象哈希和被替换文件的旧哈希。
 - 清单根据当前版本给出下一跳，当前最新版本返回签名的「无更新」清单。1.0.2→1.0.3→1.0.4→1.0.5→1.0.6→1.0.7，需要每一跳正常完成启动后再检查下一跳。
 - 2026-11-12 10:57（UTC+8）使用真实旧下载函数重新检查以下路径：
 
 | 原地址下的路径 | HTTP | Content-Type | 跳转目标主机 |
 |---|---|---|---|
-| `manifests/1.0.2.json?d` | 302 | text/html; charset=utf-8 | media-qhxn-fj-person.qh6oss.ctyunxs.cn |
+| `manifests/1.0.2.json?d` | 302 | text/html; charset=utf-8 | 天翼云下载节点 |
 | `manifests/1.0.2.sig?d` | 302 | text/html; charset=utf-8 | 同上 |
 | `objects/f28488ce4343e44be980a463d6e47fb3ee308e550d41fbfaf0856d24da91757c?d` | 302 | text/html; charset=utf-8 | 同上 |
 

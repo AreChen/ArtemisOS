@@ -41,8 +41,8 @@ Android 镜像、Emulator、图形库、安全显示服务及其他运行时不�
 
 未对正在运行的本机实例做 60 FPS 性能测量，未重启或升级该实例。上述自动化使用隔离目录，不启动 Android；实际画面流畅度、CPU 变化和 OTA 交互由用户在本机自行升级后确认。隐藏 UI 测试不等于所有 DPI 的视觉验收。
 
-永久 OTA 地址仍为 `https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/`。匿名 HTTPS 跳转至天翼云，临时签名 URL 不写入配置，不修改 OpenList 全局代理或分享设置。发布顺序为验证对象、最新无更新清单、最后发布旧版本升级清单与签名；固定路径配对仍非原子，客户端配对验签失败会停止或重新获取，不会跳过验签。
+OTA 使用匿名 HTTPS 跳转直连天翼云。发布顺序为验证对象、最新无更新清单、最后发布旧版本升级清单与签名；固定路径配对仍非原子，客户端配对验签失败会停止或重新获取，不会跳过验签。
 
 本地生成记录位于 `build/release-1.1.1/`，不提交 Git：`product-verification.json`、`ota-test-result.json`、`live-after-publication.json`、`publication.json`、`live-preservation.json`。公开仓库保存测试源码与本说明，不提交运行证据、构建产物或用户数据。
 
-本次没有 1.1.1 完整安装包。全新用户可以安装 [1.1.0 完整包](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.1.0.exe)，再检查 OTA 升级。
+首次安装用户从项目分发渠道获取 1.1.0 完整包，然后检查 OTA 更新至 1.1.1。

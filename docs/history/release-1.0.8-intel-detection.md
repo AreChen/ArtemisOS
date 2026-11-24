@@ -35,11 +35,11 @@ NVIDIA、AMD 的通用硬件模式没有型号名称白名单；GeForce、RTX、
 
 ## 线上下载
 
-- [1.0.8 完整安装包](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.0.8.exe)，1233906697 字节。
-- [SHA256 校验文件](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.0.8.exe.sha256)。安装包 SHA256：fc29b0b9adf64ae4143ca3de3c7e4aa3b5511d168da2ab9e739f3a4aec47689c。
+- 1.0.8 完整安装包，1233906697 字节。
+- 安装包 SHA256：`fc29b0b9adf64ae4143ca3de3c7e4aa3b5511d168da2ab9e739f3a4aec47689c`。
 - 关闭模拟器后直接运行完整包，自动原目录覆盖升级，保留数据；使用新直连更新器的 1.0.7 客户端也可以在检查更新中升级，变化文件共 46,474 字节。
 - 线上检查覆盖新更新器读取 1.0.2→1.0.8 的签名逐级清单，以及最新版本无更新标记；这不等于为旧下载器增加兼容迁移。
-- EXE 与四个补丁对象均经完整匿名读回验证大小/哈希；最终响应来自天翼云 ctyunxs.cn，未使用 OpenList 文件代理。
+- EXE 与四个补丁对象均经完整匿名读回验证大小/哈希；最终响应来自天翼云，未使用 OpenList 文件代理。
 - 清单和签名仍为两个固定路径文件，发布切换期间可能短暂不一致，客户端需停下或重取完整配对后验签，绝不跳过验签。
 
 [发布记录](evidence/release-1.0.8/publication.json) · [线上验证](evidence/release-1.0.8/live-after-publication.json)

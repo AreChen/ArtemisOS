@@ -31,11 +31,10 @@
 
 ## 下载与记录
 
-- [完整安装包](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.0.9.exe)：1,233,315,546 字节；匿名完整回读的大小及 SHA256 与本地一致：`414de6c38d2381cf64ab69c1950500883f74f695342fe7d9a20151e1b3aa6648`。
-- [SHA256 文件](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.0.9.exe.sha256)
-- [最终专用服务源码 ZIP](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/sources/ArtemisOS15-Secure-Display-Sources-1.0.9-r2.zip)：516,863 字节，SHA256 `2dad5c6861dadde64700ba65174f8bc8d6c99275a9db16b59a8392b4d7df4a45`。
+- 完整安装包：1,233,315,546 字节；匿名完整回读的大小及 SHA256 与本地一致：`414de6c38d2381cf64ab69c1950500883f74f695342fe7d9a20151e1b3aa6648`。
+- 最终专用服务源码 ZIP：516,863 字节，SHA256 `2dad5c6861dadde64700ba65174f8bc8d6c99275a9db16b59a8392b4d7df4a45`。
 - [原始调查](secure-display-and-frontend-20261112.md)
 - [OTA 验收](evidence/release-1.0.9/ota-test-result.json) · [安装包验收](evidence/release-1.0.9/installer-smoke-result.json) · [发布记录](evidence/release-1.0.9/publication.json)
 - [安装包直连回读](evidence/release-1.0.9/installer-publication.json) · [本机保留数据升级](evidence/release-1.0.9/local-install-result.json) · [临时测试环境清理](evidence/release-1.0.9/installer-smoke-cleanup-result.json)
 
-使用既定 `/d/CLOUD/Footage/EAPIL/Artemis/ota/` 永久入口，由 OpenList 302 跳转到天翼云下载；不将临时签名 URL 写入配置，不修改代理或分享设置。固定路径清单与签名的发布仍不具备原子性；切换期间不一致时客户端停止或重取完整配对验签，绝不跳过签名验证。
+OTA 入口返回 HTTP 302，客户端直连天翼云。固定路径清单与签名的发布仍不具备原子性。切换期间不一致时，客户端停止或重取完整配对验签。

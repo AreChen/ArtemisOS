@@ -14,7 +14,7 @@ r2 沿用已发布 1.0.7 的全部产品文件、Android 15 镜像、Emulator 37
 - 关闭模拟器后直接运行新安装包，无需先卸载。相同版本可修复安装；拒绝降级、多个安装身份、机器级/不同位数注册及错误目标目录。
 - 不重写 `data/preferences.ini`，包括未知字段；不初始化、删除或重建 AVD，不覆盖已安装应用、登录状态或用户文件。
 - 对镜像和 SDK 比较 SHA256，相同文件跳过，变化的程序文件先备份。此次 1.0.6→1.0.7-r2 不重写系统镜像。
-- 保留两级自定义 OTA 地址；仅将已知旧官方分享地址替换为 `https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/`。
+- 保留两级自定义 OTA 地址。安装器将已知旧官方分享地址替换为生产直连入口。
 - 不调用 `Find-ArtemisInstallations.ps1` 或原型 `Upgrade-Transaction.ps1`。原生安装流程未关闭或绕过杀毒防护；首次镜像优化及模拟器启动仍使用 PowerShell。
 
 ## 中断恢复与边界
@@ -38,8 +38,8 @@ r2 沿用已发布 1.0.7 的全部产品文件、Android 15 镜像、Emulator 37
 
 ## 下载与交付
 
-- [1.0.7-r2 完整安装包](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.0.7-r2.exe)：1,233,948,425 字节，约 1.23 GB / 1.15 GiB。
-- [SHA256 校验文件](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.0.7-r2.exe.sha256)：2c1b399668b95c6b1ab19a516bc6e325a8a91409a0c263266183202445e9f328。
+- 1.0.7-r2 完整安装包：1,233,948,425 字节，约 1.23 GB / 1.15 GiB。
+- SHA256 校验文件：2c1b399668b95c6b1ab19a516bc6e325a8a91409a0c263266183202445e9f328。
 - 关闭现有模拟器，再直接运行此安装包；不需要卸载或清理数据。安装中若报告多个真实安装，先核对目录，不要删除数据。
 - 仅目录已不存在的旧卸载登记可被忽略，不删除登记本身；无法访问或仍存在的旧目录仍按冲突处理。
 - 安装器修订源与构建清单保存在 releases/1.0.7-r2-installer；产品文件继续使用原 1.0.7 基线。

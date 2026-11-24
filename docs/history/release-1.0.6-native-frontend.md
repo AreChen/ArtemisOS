@@ -4,10 +4,10 @@
 
 ## 分发
 
-- 新用户：[完整安装包](https://cloudx.playones.com/sd/YCsIY2UB/installers/ArtemisOS15-Offline-Installer-1.0.6.exe?d)，1233956460 字节，SHA-256 `a74d2b91a4050f8057347eddafc924ded27c84b2c99e98584766649547b64edb`。
+- 新用户从项目分发渠道获取完整安装包，1233956460 字节，SHA-256 `a74d2b91a4050f8057347eddafc924ded27c84b2c99e98584766649547b64edb`。
 - 1.0.5 用户：打开 Android 中的“ArtemisOS 更新”检查并安装，累计下载 18,800,504 字节（约 18.8 MB），不包含 SDK 或系统镜像。保留应用、AVD/SD 数据、CPU/内存、分辨率和渲染选择。
 - 完整安装器用于新安装及空目录；已有用户通过 OTA 升级，不需要卸载。
-- [显示组件对应源码包](https://cloudx.playones.com/sd/YCsIY2UB/sources/ArtemisOS15-Display-Sources-1.0.6.zip?d) 独立分发；安装目录包含第三方通知及源码下载信息。详见 [许可与来源记录](release-1.0.6-third-party.md)。
+- 显示组件对应源码包独立分发。安装目录包含第三方通知及源码下载信息。详见 [许可与来源记录](release-1.0.6-third-party.md)。
 
 ## 实现与修复
 

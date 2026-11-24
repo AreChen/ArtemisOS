@@ -34,7 +34,9 @@ ArtemisOS 15 是基于 Android Emulator 的 Windows 内部测试环境。本仓�
 
 ## OpenList 更新通道
 
-更新器使用 `https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/`，安全跟随 HTTPS 跳转直连天翼云，不使用旧分享或服务器代理。1.0.7-r2 及以后的完整安装包已包含直连更新器；旧下载器无法访问时，直接运行新完整包覆盖原目录并保留数据。发布、配对一致性和安装保护见 [直连 OTA](docs/openlist-direct-ota.md)。
+更新器通过 HTTPS 跳转直连天翼云。1.0.7-r2 及以后的完整安装包已包含直连更新器。旧客户端无法更新时，可从项目分发渠道获取完整包并覆盖安装，保留实例数据。发布、配对一致性和安装保护见 [直连 OTA](docs/openlist-direct-ota.md)。
+
+GitHub Releases、README 和公开文档只提供版本说明、校验值和更新方式。自有下载直链、分享链接及临时签名地址由项目分发渠道提供。发布前检查说明、文档链接及附带资产，避免带入分发地址。
 
 ## 本机更新试验
 

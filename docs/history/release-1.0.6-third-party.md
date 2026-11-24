@@ -6,10 +6,10 @@
 
 - `stage/update/frontend/third-party/`：59 文件，470,400 bytes。完整许可、通知、实际构建证据、原始构建脚本及逐文件 SHA-256。不含大型源码归档。
 - `third-party/scrcpy-4.1/dist/ArtemisOS15-Display-Sources-1.0.6.zip`：32,253,040 bytes；SHA-256 `5f323434aad8d3343485f8cc587cf39cfff472ea6a1e87ccfcd03b3205875ca8`。
-- 公开相对路径：`sources/ArtemisOS15-Display-Sources-1.0.6.zip`。与 1.0.5 相同的公开分发 share，完整下载地址：<https://cloudx.playones.com/sd/YCsIY2UB/sources/ArtemisOS15-Display-Sources-1.0.6.zip?d>。
+- 源码包沿用 1.0.5 的分发渠道，相对路径为 `sources/ArtemisOS15-Display-Sources-1.0.6.zip`。
 - `tools/Prepare-FrontendRuntime.ps1` 只按 manifest 复制轻量材料，验证独立源码 ZIP 的大小及校验和，不向 OTA 或普通安装目录复制 `source-archives/`、`dist/`。
 
-源码 ZIP 已由发布流程上传。本次使用上述公开 URL 匿名完整下载，实际读回 32,253,040 bytes，SHA-256 与上述值完全一致；`sources.json` 已记为 `publicAvailabilityVerified=true`。本地 ZIP 也恢复为这一已公开文件的完全相同字节。该来源先于完整安装包及 OTA 公开，发布后应持续保留等价访问。
+源码 ZIP 已由发布流程上传。发布时匿名完整下载并核对了 32,253,040 字节，SHA-256 与上述值完全一致。结果记录在 `sources.json` 的 `publicAvailabilityVerified` 字段。该来源先于完整安装包及 OTA 公开，发布后应持续保留等价访问。
 
 最终客户端额外补入 FFmpeg `libavutil/x86/x86inc.asm` 的原始 ISC 版权、许可和免责声明；完整源码 ZIP 内本来已经含有该原文，因此不改变已公开 ZIP。相对首次冻结，仅 `FFmpeg-permissive-notices.txt` 和 `sources.json` 有变化；源码包内部 manifest 从已公开 ZIP 原样恢复。
 

@@ -4,9 +4,9 @@
 
 ## 地址与下载
 
-永久基础地址：`https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/`。
+生产基础地址由项目分发配置提供。
 
-保留 `manifests/<当前版本>.json`、对应 `.sig`、`objects/<SHA256>`。OpenList 返回 302，Windows 直接从天翼云获取文件；不使用 `/sd/YCsIY2UB/` 分享，不保存临时签名 URL，不修改全局代理或其他分享。
+保留 `manifests/<当前版本>.json`、对应 `.sig`、`objects/<SHA256>`。OpenList 返回 302，Windows 直接从天翼云获取文件。更新器只保存生产入口，临时签名 URL 用于当次下载。
 
 更新器与发布器共用 `stage/update/core.ps1` 的匿名下载实现：
 
@@ -22,16 +22,17 @@
 
 ## 发布
 
-新参数 `-PublicBase` 默认上述直连地址；已移除 `ShareId` 和分享 API。发布器确认 PublicBase 的 `/d/` 路径等于受限账户 `base_path + RemoteRoot`，避免上传和匿名回读落在不同仓库。
+发布时用 `-PublicBase` 指定分发配置中的直连地址。发布器确认 PublicBase 的 `/d/` 路径等于受限账户 `base_path + RemoteRoot`，避免上传和匿名回读落在不同仓库。
 
 ```powershell
 rtk proxy powershell.exe -NoProfile -File tools/Publish-Update.ps1 `
   -BaseRoot <旧版目录> -TargetRoot <新版目录> -Repository <本地签名仓库>
 
+$otaBase = [uri](Read-Host "生产 OTA 基础地址")
 $credential = Get-Credential
 ./tools/Publish-OpenList.ps1 -Repository <本地签名仓库> `
   -FromVersion <旧版本> -TargetVersion <新版本> -RemoteRoot /ota `
-  -PublicBase https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/ `
+  -PublicBase $otaBase `
   -Credential $credential
 $credential = $null
 ```
@@ -56,7 +57,7 @@ $credential = $null
 
 `stage/update/server.txt` 是新默认，两安装模板拒绝旧 `OpenListServerFile` 构建宏。仍优先读取 `data/update/server.txt`，显式自定义地址保留，但必须是 HTTPS。
 
-不为旧更新器开发代理、引导迁移或修复工具。旧客户端无法自动更新时，关闭模拟器后直接运行 [1.0.8 完整安装包](https://cloudx.playones.com/d/CLOUD/Footage/EAPIL/Artemis/ota/installers/ArtemisOS15-Offline-Installer-1.0.8.exe)，自动使用原目录和 AppId 覆盖升级，保留实例、应用与偏好。无需先卸载。
+不为旧更新器开发代理、引导迁移或修复工具。旧客户端无法自动更新时，关闭模拟器后直接运行 1.0.8 完整安装包，自动使用原目录和 AppId 覆盖升级，保留实例、应用与偏好。无需先卸载。
 
 **正式 `installer.iss` 的 r2 修订已支持保留数据覆盖安装**，采用原生 Inno 发现、哈希比较、备份恢复与原卸载日志追加，不调用覆盖事务原型。只迁移已知旧官方 OTA 地址，保留自定义地址；未注册且已有内容的目录、多个真实安装及降级仍被拒绝。验收范围和恢复边界见 [r2 发布记录](history/release-1.0.7-r2-native-upgrade.md)。原始不带 r2 的 1.0.7 包仅作历史记录，不作为现行下载入口。
 
@@ -74,6 +75,6 @@ rtk proxy powershell.exe -NoProfile -File tests/ota-openlist-direct-live.ps1
 
 TLS 夹具只在测试进程信任新生成证书，不改系统信任。客户端测试包含各类跳转错误、认证隔离、HTML 分片、签名/大小/哈希失败及小文件两跳真实应用，检查数据标记保持。发布测试包含实际 TLS API 上传、匿名 CDN 回读、顺序、完整配对、损坏与冲突、失败不报告成功。
 
-真实匿名只读验证：1.0.2→1.0.3→1.0.4→1.0.5→1.0.6 清单验签通过，1.0.6 是签名无更新标记；28 字节对象完整核对长度及哈希；121,830,552 字节大对象最终来自天翼云 `ctyunxs.cn`，206，`Content-Range: bytes 0-1023/121830552`，只读 1 KiB，没有验证整个大对象的哈希。证据：`build/ota-direct-live-result.json`。
+真实匿名只读验证：1.0.2→1.0.3→1.0.4→1.0.5→1.0.6 清单验签通过，1.0.6 是签名无更新标记；28 字节对象完整核对长度及哈希；121,830,552 字节大对象最终来自天翼云，206，`Content-Range: bytes 0-1023/121830552`，只读 1 KiB，没有验证整个大对象的哈希。证据：`build/ota-direct-live-result.json`。
 
 安装配置测试 `tests/installer-ota-default.ps1` 使用独立身份/tiny SDK；静默执行。旧 `Start-LocalServer.ps1` 仍提供 loopback HTTP，不能用于新客户端；使用隔离 TLS 夹具或有效 HTTPS 测试服务。旧分享连接组件及迁移脚本只供历史取证，不用于当前发布。
